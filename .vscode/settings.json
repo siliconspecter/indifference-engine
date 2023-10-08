@@ -1,0 +1,25 @@
+{
+  "eslint.validate": [
+    "javascript",
+    "html"
+  ],
+  "editor.codeActionsOnSave": {
+    "source.fixAll": true
+  },
+  "editor.formatOnSave": true,
+  "editor.formatOnType": true,
+  "editor.detectIndentation": false,
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "files.trimFinalNewlines": true,
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  "files.eol": "\n",
+  "editor.rulers": [
+    80
+  ],
+  "terminal.integrated.defaultProfile.windows": "Git Bash",
+  "[javascript]": {
+    "editor.formatOnSave": false
+  }
+}

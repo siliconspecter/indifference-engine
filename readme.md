@@ -2,8 +2,7 @@
 
 ## Conventions
 
-American English in `snake_case` is used wherever possible for declaration
-names.
+American English in `snake_case` is used for declaration names.
 
 Preprocessor macro names are in `UPPER_CASE` while everything else is in
 `lower_case`.

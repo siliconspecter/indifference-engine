@@ -7,6 +7,9 @@ American English in `snake_case` is used for declaration names.
 Preprocessor macro names are in `UPPER_CASE` while everything else is in
 `lower_case`.
 
+Lines are kept to 80 characters in length where possible.  Sometimes, IDE
+formatting or large singular words make this impossible.
+
 ### Namespacing
 
 All engine-related declarations are prefixed `ie_{file name}` or

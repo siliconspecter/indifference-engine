@@ -58,14 +58,14 @@ rather than `clicked` or `clicking`.
 The [engine/primitive.h](./deliverables/client/source/engine/primitive.h) file
 declares the following types which largely map directly to WASM types:
 
-| Type               | Description        | Constants                                                                                                                         |
-| ------------------ | ------------------ | --------------------------------------------------------------------------------------------------------------------------------- |
-| `ie_primitive_u32` | Unsigned WASM i32. | `IE_PRIMITIVE_U32_MIN` and `IE_PRIMITIVE_U32_MAX`.                                                                                |
-| `ie_primitive_s32` | Signed WASM i32.   | `IE_PRIMITIVE_S32_MIN` and `IE_PRIMITIVE_S32_MAX`.                                                                                |
-| `ie_primitive_u64` | Unsigned WASM i64. | `IE_PRIMITIVE_U64_MIN` and `IE_PRIMITIVE_U64_MAX`.                                                                                |
-| `ie_primitive_s64` | Signed WASM i64.   | `IE_PRIMITIVE_S64_MIN` and `IE_PRIMITIVE_S64_MAX`.                                                                                |
-| `ie_primitive_f32` | WASM f32.          | `IE_PRIMITIVE_F32_NAN`, `IE_PRIMITIVE_F32_IS_NAN`, `IE_PRIMITIVE_F32_POSITIVE_INFINITY` and `IE_PRIMITIVE_F32_NEGATIVE_INFINITY`. |
-| `ie_primitive_f64` | WASM f64.          | `IE_PRIMITIVE_F64_NAN`, `IE_PRIMITIVE_F64_IS_NAN`, `IE_PRIMITIVE_F64_POSITIVE_INFINITY` and `IE_PRIMITIVE_F64_NEGATIVE_INFINITY`. |
+| Type               | Description          | Constants                                                                                                                         |
+| ------------------ | -------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `ie_primitive_u32` | Unsigned WASM `i32`. | `IE_PRIMITIVE_U32_MIN` and `IE_PRIMITIVE_U32_MAX`.                                                                                |
+| `ie_primitive_s32` | Signed WASM `i32`.   | `IE_PRIMITIVE_S32_MIN` and `IE_PRIMITIVE_S32_MAX`.                                                                                |
+| `ie_primitive_u64` | Unsigned WASM `i64`. | `IE_PRIMITIVE_U64_MIN` and `IE_PRIMITIVE_U64_MAX`.                                                                                |
+| `ie_primitive_s64` | Signed WASM `i64`.   | `IE_PRIMITIVE_S64_MIN` and `IE_PRIMITIVE_S64_MAX`.                                                                                |
+| `ie_primitive_f32` | WASM `f32`.          | `IE_PRIMITIVE_F32_NAN`, `IE_PRIMITIVE_F32_IS_NAN`, `IE_PRIMITIVE_F32_POSITIVE_INFINITY` and `IE_PRIMITIVE_F32_NEGATIVE_INFINITY`. |
+| `ie_primitive_f64` | WASM `f64`.          | `IE_PRIMITIVE_F64_NAN`, `IE_PRIMITIVE_F64_IS_NAN`, `IE_PRIMITIVE_F64_POSITIVE_INFINITY` and `IE_PRIMITIVE_F64_NEGATIVE_INFINITY`. |
 
 For integers, `ie_primitive_s32` is recommended.  Bugs are common when using the
 other types as many operations can interact with the built-in C operators in

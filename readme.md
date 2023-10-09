@@ -26,6 +26,8 @@ For example, a file named `car.h` might resemble the following:
 
 #define IE_CAR_H
 
+#include "../engine/primitive.h"
+
 /**
  * The value of the car, in dollars.
  */
@@ -34,7 +36,7 @@ For example, a file named `car.h` might resemble the following:
 /**
  * The altitude of the car, in meters.
  */
-extern float ie_car_altitude_meters;
+extern ie_primitive_f32 ie_car_altitude_meters;
 
 /**
  * Drives the car.

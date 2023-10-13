@@ -1,62 +1,19 @@
 # Indifference Engine
 
-## Conventions
+> We have purposely designed it wrong, as a joke.
 
-American English in `snake_case` is used for declaration names.
+The goal of this project is to provide an engine for small-scale retro-styled
+games which will be as easy to build and run in fifty years' time as now.  To
+achieve this:
 
-Preprocessor macro names are in `UPPER_CASE` while everything else is in
-`lower_case`.
+- All file formats, programming languages and other tools used are the amongst
+  the simplest, longest-established and widely supported.
+- Third-party dependencies are kept to a minimum, both at build and run time.
+- Full but minimalistic platform abstraction, preferring portability over
+  platform-provided features or performance.
 
-Lines are kept to 80 characters in length where possible.  Sometimes, IDE
-formatting or large singular words make this impossible.
+The game is split into two components which are packaged together:
 
-### Namespacing
-
-Header files contain a header guard named `{file name}_H`.
-
-For example, a file named `car.h` might resemble the following:
-
-```c
-#ifndef CAR_H
-
-#define CAR_H
-
-// Declarations go here.
-
-#endif
-```
-
-### Callbacks
-
-A typedef is created for each callback type, named `{verb}_callback`.  Any
-parameters using the callback are named `on_{verb}`.  Verbs are in
-non-continuous present tense, e.g. `click` rather than `clicked` or `clicking`.
-
-### Parameter Order
-
-Where possible, parameters are ordered as a form of pipeline from left to right.
-For example, a function filtering light through a gel to produce a color would
-be ordered the same (light, gel, color).
-
-## Primitive Types
-
-The [engine/primitives](./deliverables/client/source/engine/primitives)
-directory contains headers for primitive types:
-
-| Type/Header File                                                  | Description        | Constants                                  |
-| ----------------------------------------------------------------- | ------------------ | ------------------------------------------ |
-| [`s32`](./deliverables/client/source/engine/primitives/s32.h)     | Signed WASM `i32`. | `S32_MIN` and `S32_MAX`.                   |
-| [`f32`](./deliverables/client/source/engine/primitives/f32.h)     | WASM `f32`.        | None.                                      |
-| [`index`](./deliverables/client/source/engine/primitives/index.h) | Array index.       | `INDEX_MIN`, `INDEX_MAX` and `INDEX_NONE`. |
-
-## Math
-
-The C math library is not available, but a partial substitute is available in
-the [engine/math](./deliverables/client/source/engine/math) directory.
-
-| Header File                                                               | Declarations                                                                                                                                                                   |
-| ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [`float`](./deliverables/client/source/engine/math/float.h)               | `NAN`, `POSITIVE_INFINITY`, `NEGATIVE_INFINITY` and `IS_NAN`.                                                                                                                  |
-| [`trigonometry`](./deliverables/client/source/engine/math/trigonometry.h) | `PI`, `sin` and `cos`.                                                                                                                                                         |
-| [`relational`](./deliverables/client/source/engine/math/relational.h)     | `MIN`, `MAX` and `CLAMP`.                                                                                                                                                      |
-| [`vector`](./deliverables/client/source/engine/math/vector.h)             | `VECTOR_COMPONENTS`, `vector`, `add_vectors`, `multiply_vector_by_scalar`, `subtract_vectors`, `dot_product`, `distance_squared` and `linearly_interpolate_vectors_by_scalar`. |
+- An entirely self-contained [WASM module](./deliverables/wasm_module/readme.md)
+  containing all logic and data needed to run the game to completion.
+- A platform-specific runtime which hosts the WASM module.

@@ -1,4 +1,4 @@
-# [Indifference Engine](../../readme.md)
+# [Indifference Engine](../../readme.md) > WASM Module
 
 The WASM Module is written using C, using Make as a build tool.
 

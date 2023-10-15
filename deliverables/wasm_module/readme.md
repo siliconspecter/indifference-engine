@@ -36,7 +36,13 @@ development tools installed, and that you have a local copy of this repository.
 ## Building
 
 - Open a terminal in this directory.
-- Type `make`.
+- Type `make production` for an optimized build or `make development` for a fast
+  build.
+- The built WASM module can be found at
+  [ephemeral/production/build/module.wasm](./ephemeral/production/build/module.wasm)
+  or
+  [ephemeral/development/build/module.wasm](./ephemeral/development/build/module.wasm)
+  respectively.
 
 ## Conventions
 

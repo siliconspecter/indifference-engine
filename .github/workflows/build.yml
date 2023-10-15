@@ -1,0 +1,12 @@
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - run: sudo apt-get update
+      - run: sudo apt-get install build-essential clang-15 gcc-multilib
+
+      - run: make production --jobs
+        working-directory: deliverables/wasm_module

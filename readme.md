@@ -78,8 +78,9 @@ All buffers in this range represent fully optional IO:
 | `1073741837` | `f32` | 3.                                               | Size of `f32`.                 | The hosting runtime sets this value before calling `audio` (see below).  This contains the position of the listener on the X, Y and Z axes in world space, in meters.                                                                                                         |
 | `1073741838` | `f32` | 3.                                               | Size of `f32`.                 | The hosting runtime sets this value before calling `audio` (see below).  This contains a unit vector pointing in the direction of the listener on the X, Y and Z axes in world space.                                                                                         |
 | `1073741839` | `i32` | 1 per controller, at least one controller.       | Size of `i32`.                 | The hosting runtime sets each value within to the corresponding controller's state before calling `tick` (see below).                                                                                                                                                         |
-| `1073741840` | `f32` | 1 per controller, at least one controller.       | Size of `f32`.                 | The hosting runtime sets each value within to the corresponding controller's X axis value before calling `tick`, where `-1` is fully left, `0` is centered and `1` is fully right.                                                                                            |
-| `1073741841` | `f32` | 1 per controller, at least one controller.       | Size of `f32`.                 | The hosting runtime sets each value within to the corresponding controller's Y axis value before calling `tick`, where `-1` is fully down, `0` is centered and `1` is fully up.                                                                                               |
+| `1073741840` | `f32` | 1 per controller, at least one controller.       | Size of `f32`.                 | The hosting runtime sets each value within to the corresponding controller's Y axis value before calling `tick`, where `-1` is fully down, `0` is centered and `1` is fully up.                                                                                               |
+| `1073741841` | `f32` | 1 per controller, at least one controller.       | Size of `f32`.                 | The hosting runtime sets each value within to the corresponding controller's X axis value before calling `tick`, where `-1` is fully left, `0` is centered and `1` is fully right.                                                                                            |
+| `1073741842` | `i32` | 1.                                               | Size of `i32`.                 | The hosting runtime sets this value to `0` before calling event handlers (see below).  If the event handler changed this to any other value, this represents an error (see below).                                                                                            |
 
 ###### Pointing Device States
 
@@ -119,6 +120,14 @@ value is undefined if no controller is connected.
 
 All other bits are reserved for future controller features and are to be
 ignored for now.
+
+###### Errors
+
+Positive values are game-specific, while negative values are engine-specific.
+
+| Value | Description            |
+| ----- | ---------------------- |
+| `0`   | No error has occurred. |
 
 ##### -2147483648 to -1073741825 - IO required by hosting runtime
 

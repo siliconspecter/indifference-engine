@@ -1,4 +1,4 @@
-# Indifference Engine
+# ![Indifference Engine](./branding/logo_readme.gif)
 
 > We have purposely designed it wrong, as a joke.
 

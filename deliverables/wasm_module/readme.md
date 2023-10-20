@@ -89,9 +89,10 @@ directory contains headers for primitive types:
 
 | Type/Header File                              | Description        | Constants                                  |
 | --------------------------------------------- | ------------------ | ------------------------------------------ |
-| [`s32`](./source/engine/primitives/s32.h)     | Signed WASM `i32`. | `S32_MIN` and `S32_MAX`.                   |
+| [`byte`](./source/engine/primitives/byte.h)   | Unsigned byte.     | `BYTE_MIN` and `BYTE_MAX`.                 |
 | [`f32`](./source/engine/primitives/f32.h)     | WASM `f32`.        | None.                                      |
 | [`index`](./source/engine/primitives/index.h) | Array index.       | `INDEX_MIN`, `INDEX_MAX` and `INDEX_NONE`. |
+| [`s32`](./source/engine/primitives/s32.h)     | Signed WASM `i32`. | `S32_MIN` and `S32_MAX`.                   |
 
 ## Math
 
@@ -101,6 +102,17 @@ the [engine/math](./source/engine/math) directory.
 | Header File                                           | Declarations                                                                                                                                                                   |
 | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | [`float`](./source/engine/math/float.h)               | `NAN`, `POSITIVE_INFINITY`, `NEGATIVE_INFINITY` and `IS_NAN`.                                                                                                                  |
-| [`trigonometry`](./source/engine/math/trigonometry.h) | `PI`, `sin` and `cos`.                                                                                                                                                         |
 | [`relational`](./source/engine/math/relational.h)     | `MIN`, `MAX` and `CLAMP`.                                                                                                                                                      |
+| [`trigonometry`](./source/engine/math/trigonometry.h) | `PI`, `sin` and `cos`.                                                                                                                                                         |
 | [`vector`](./source/engine/math/vector.h)             | `VECTOR_COMPONENTS`, `vector`, `add_vectors`, `multiply_vector_by_scalar`, `subtract_vectors`, `dot_product`, `distance_squared` and `linearly_interpolate_vectors_by_scalar`. |
+| [`matrix`](./source/engine/math/matrix.h)             | `MATRIX_ROWS`, `MATRIX_COLUMNS`, `matrix` and `identity_matrix`.                                                                                                               |
+| [`matrix_pair`](./source/engine/math/matrix_pair.h)   | `MATRIX_PAIR_MATRICES`, `MATRIX_PAIR_FORWARD`, `MATRIX_PAIR_INVERSE`, `matrix_pair` and `identity_matrix_pair`.                                                                |
+
+## Video
+
+The [engine/video](./deliverables/wasm_module/source/engine/video) directory
+contains a simple graphics library:
+
+| Header File                                           | Declarations                                                                             |
+| ----------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| [`color`](./source/engine/video/color.h)              | `COLOR_CHANNELS`, `COLOR_RED`, `COLOR_GREEN`, `COLOR_BLUE`, `COLOR_OPACITY` and `color`. |

@@ -26,12 +26,12 @@ After loading the WASM module, the runtime executes following functions exported
 by the WASM module to discover a set of buffers used to communicate between the
 WASM module and its hosting runtime:
 
-| Export               | Description                                                                                                                                                                                                                         |
-| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `buffer_count`       | Returns an `i32` specifying the number of buffers which exist.                                                                                                                                                                      |
-| `buffer_pointers`    | Returns a pointer to a packed sequence of pointers (one per buffer, each indicating the start of a buffer).  Must be aligned to a multiple of the size of a pointer.                                                                |
-| `buffer_sizes`       | Returns a pointer to a packed sequence of `i32`s (one per buffer, each indicating the size of a buffer in bytes, in the same order as that returned by `buffer_pointers`).  Must be aligned to a multiple of the size of an `i32`.  |
-| `buffer_identifiers` | Returns a pointer to a packed sequence of `i32`s (one per buffer, each uniquely identifying a buffer (see below), in the same order as that returned by `buffer_pointers`).  Must be aligned to a multiple of the size of an `i32`. |
+| Export               | Description                                                                                                                                                                                                                                                                |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `buffer_count`       | Returns an `i32` specifying the number of buffers which exist.                                                                                                                                                                                                             |
+| `buffer_pointers`    | Returns a pointer to a packed sequence of pointers (one per buffer, each indicating the start of a buffer).  Must be aligned to a multiple of the size of a pointer.  Contents are not permitted to change.                                                                |
+| `buffer_sizes`       | Returns a pointer to a packed sequence of `i32`s (one per buffer, each indicating the size of a buffer in bytes, in the same order as that returned by `buffer_pointers`).  Must be aligned to a multiple of the size of an `i32`.  Contents are not permitted to change.  |
+| `buffer_identifiers` | Returns a pointer to a packed sequence of `i32`s (one per buffer, each uniquely identifying a buffer (see below), in the same order as that returned by `buffer_pointers`).  Must be aligned to a multiple of the size of an `i32`.  Contents are not permitted to change. |
 
 #### Identifiers
 

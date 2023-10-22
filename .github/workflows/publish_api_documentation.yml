@@ -23,7 +23,7 @@ jobs:
           path: pages
           token: ${{ SECRETS.INDIFFERENCE_ENGINE_API_DOCUMENTATION_TOKEN }}
 
-      - run: find pages -mindepth 1 -maxdepth 1 -not -name ".git" -delete
+      - run: find pages -mindepth 1 -maxdepth 1 -not -name ".git" -exec rm -r {} \;
 
       - run: cp -r main/deliverables/wasm_module/ephemeral/api_documentation/html/* pages
 

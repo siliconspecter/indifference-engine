@@ -11,8 +11,8 @@ TOTAL_REBUILD_FILES = makefile $(H_FILES)
 
 production: ephemeral/production/build/module.wasm
 development: ephemeral/development/build/module.wasm
-documentation:
-	rm -rf ephemeral/documentation
+api_documentation:
+	rm -rf ephemeral/api_documentation
 	doxygen
 
 clean:

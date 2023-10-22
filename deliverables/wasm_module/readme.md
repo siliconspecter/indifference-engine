@@ -115,3 +115,10 @@ development tools installed, and that you have a local copy of this repository.
 - Click `Ok`.
 - Click `Ok`.
 - Restart your machine.
+
+### Generating API documentation
+
+- Open a terminal in this directory.
+- Type `make api_documentation`.
+- The generated API documentation can be found at
+  [ephemeral/api_documentation](./ephemeral/api_documentation).

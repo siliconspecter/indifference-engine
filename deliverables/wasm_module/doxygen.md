@@ -1,6 +1,13 @@
 # API Documentation
 
-## Math Library
+## Exports
+
+| Header                               | Description                                                     |
+| ------------------------------------ | --------------------------------------------------------------- |
+| @ref source/engine/exports/error.h   | Helpers for throwing traps to the hosting platform.             |
+| @ref source/engine/exports/persist.h | Helpers for notifying the hosting platform what it may persist. |
+
+## Math
 
 | Header                                 | Description                                           |
 | -------------------------------------- | ----------------------------------------------------- |

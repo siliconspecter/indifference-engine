@@ -22,6 +22,6 @@
 
 ## Video
 
-| Header                            | Description                                      |
-| --------------------------------- | ------------------------------------------------ |
-| @ref source/engine/videos/color.h | 32-bits-per-pixel red-green-blue-opacity-colors. |
+| Header                           | Description                                      |
+| -------------------------------- | ------------------------------------------------ |
+| @ref source/engine/video/color.h | 32-bits-per-pixel red-green-blue-opacity-colors. |

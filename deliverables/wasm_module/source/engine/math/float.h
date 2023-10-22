@@ -24,4 +24,11 @@
  */
 #define IS_NAN(value) ((value) != (value))
 
+/**
+ * Calculates the square root of a given value.
+ * @param radicand The value of which to calculate the square root.
+ * @return The square root of the given value.
+ */
+f32 square_root(const f32 radicand);
+
 #endif

@@ -9,6 +9,9 @@ PRODUCTION_O_FILES = $(patsubst source/%.c,ephemeral/production/objects/%.o,$(C_
 DEVELOPMENT_O_FILES = $(patsubst ephemeral/production/%,ephemeral/development/%,$(PRODUCTION_O_FILES))
 TOTAL_REBUILD_FILES = makefile $(H_FILES)
 
+default:
+	$(error Please run either "make production" or "make development")
+
 production: ephemeral/production/build/module.wasm
 development: ephemeral/development/build/module.wasm
 api_documentation:

@@ -11,6 +11,9 @@ TOTAL_REBUILD_FILES = makefile $(H_FILES)
 
 production: ephemeral/production/build/module.wasm
 development: ephemeral/development/build/module.wasm
+documentation:
+	rm -rf ephemeral/documentation
+	doxygen
 
 clean:
 	find ephemeral -mindepth 1 ! -name '.gitignore' -exec rm -rf {} +

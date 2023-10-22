@@ -1,0 +1,38 @@
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  public-api-documentation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          path: main
+
+      - run: sudo apt-get install doxygen
+
+      - run: make doxygen
+        working-directory: main/deliverables/wasm_module
+
+      - uses: actions/checkout@v3
+        with:
+          repository: 'siliconspecter/indifference-engine-api-documentation'
+          path: pages
+
+      - run: find pages -maxdepth 1 -not -name ".git" -not -name "." -delete
+
+      - run: cp -r main/deliverables/wasm_module/ephemeral/api_documentation/* pages
+
+      - run: git config user.email siliconspecter@outlook.com
+        working-directory: pages
+
+      - run: git config user.name siliconspecter
+        working-directory: pages
+
+      - run: git add --all
+        working-directory: pages
+
+      - run: git diff --staged --quiet --exit-code || (git commit --message "Update pushed automatically."; git push)
+        working-directory: pages

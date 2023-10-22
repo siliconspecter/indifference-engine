@@ -76,43 +76,42 @@ A typedef is created for each callback type, named `{verb}_callback`.  Any
 parameters using the callback are named `on_{verb}`.  Verbs are in
 non-continuous present tense, e.g. `click` rather than `clicked` or `clicking`.
 
-### Parameter Order
+### Parameter order
 
 Where possible, parameters are ordered as a form of pipeline from left to right.
 For example, a function filtering light through a gel to produce a color would
 be ordered the same (light, gel, color).
 
-## Primitive Types
+### Memory management
 
-The [engine/primitives](./deliverables/wasm_module/source/engine/primitives)
-directory contains headers for primitive types:
+No dynamic memory allocator is available, so all state which must persist
+between event handlers must be statically allocated as global variables.  For
+small-scale games, which are bounded simulations, this is less of a problem than
+may be expected.
 
-| Type/Header File                              | Description        | Constants                                  |
-| --------------------------------------------- | ------------------ | ------------------------------------------ |
-| [`byte`](./source/engine/primitives/byte.h)   | Unsigned byte.     | `BYTE_MIN` and `BYTE_MAX`.                 |
-| [`f32`](./source/engine/primitives/f32.h)     | WASM `f32`.        | None.                                      |
-| [`index`](./source/engine/primitives/index.h) | Array index.       | `INDEX_MIN`, `INDEX_MAX` and `INDEX_NONE`. |
-| [`s32`](./source/engine/primitives/s32.h)     | Signed WASM `i32`. | `S32_MIN` and `S32_MAX`.                   |
+## API documentation
 
-## Math
+All types, variables, functions and preprocessor macros which form the engine's
+API are documented through comments.  You can browse the documentation generated
+from these documents by Doxygen
+[here](https://siliconspecter.github.io/indifference-engine-api-documentation/).
 
-The C math library is not available, but a partial substitute is available in
-the [engine/math](./source/engine/math) directory.
+### Installing dependencies to generate API documentation
 
-| Header File                                           | Declarations                                                                                                                                                                   |
-| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [`float`](./source/engine/math/float.h)               | `NAN`, `POSITIVE_INFINITY`, `NEGATIVE_INFINITY` and `IS_NAN`.                                                                                                                  |
-| [`relational`](./source/engine/math/relational.h)     | `MIN`, `MAX` and `CLAMP`.                                                                                                                                                      |
-| [`trigonometry`](./source/engine/math/trigonometry.h) | `PI`, `sin` and `cos`.                                                                                                                                                         |
-| [`vector`](./source/engine/math/vector.h)             | `VECTOR_COMPONENTS`, `vector`, `add_vectors`, `multiply_vector_by_scalar`, `subtract_vectors`, `dot_product`, `distance_squared` and `linearly_interpolate_vectors_by_scalar`. |
-| [`matrix`](./source/engine/math/matrix.h)             | `MATRIX_ROWS`, `MATRIX_COLUMNS`, `matrix` and `identity_matrix`.                                                                                                               |
-| [`matrix_pair`](./source/engine/math/matrix_pair.h)   | `MATRIX_PAIR_MATRICES`, `MATRIX_PAIR_FORWARD`, `MATRIX_PAIR_INVERSE`, `matrix_pair` and `identity_matrix_pair`.                                                                |
+These instructions assume that you are running Windows 10 or 11 without any
+development tools installed, and that you have a local copy of this repository.
 
-## Video
-
-The [engine/video](./deliverables/wasm_module/source/engine/video) directory
-contains a simple graphics library:
-
-| Header File                                           | Declarations                                                                             |
-| ----------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| [`color`](./source/engine/video/color.h)              | `COLOR_CHANNELS`, `COLOR_RED`, `COLOR_GREEN`, `COLOR_BLUE`, `COLOR_OPACITY` and `color`. |
+- Run the [Doxygen installer](https://www.doxygen.nl/download.html).  All of the
+  default settings should suffice.
+- Press the Windows key.
+- Type `environment`.
+- Select `Edit the system environment variables`.
+- Click `Environment Variables...`.
+- In the upper pane (`User variables for `(name)), double click on the row with
+  a `Variable` of `Path`.
+- Click `New`.
+- Type `C:\Program Files\doxygen\bin` and press enter.
+- Click `Ok`.
+- Click `Ok`.
+- Click `Ok`.
+- Restart your machine.

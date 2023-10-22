@@ -35,7 +35,7 @@ jobs:
       - run: git add --all
         working-directory: pages
 
-      - run: git remote set-url origin https://x-access-token:${{ SECRETS.INDIFFERENCE_ENGINE_API_DOCUMENTATION_TOKEN }}@github.com/siliconspecter/indifference-engine-api-documentation.git
+      - run: git remote set-url origin https://siliconspecter:${{ SECRETS.INDIFFERENCE_ENGINE_API_DOCUMENTATION_TOKEN }}@github.com/siliconspecter/indifference-engine-api-documentation.git
         working-directory: pages
 
       - run: git diff --staged --quiet --exit-code || (git commit --message "Update pushed automatically."; git push)

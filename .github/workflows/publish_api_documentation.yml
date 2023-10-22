@@ -21,6 +21,7 @@ jobs:
         with:
           repository: siliconspecter/indifference-engine-api-documentation
           path: pages
+          token: ${{ SECRETS.INDIFFERENCE_ENGINE_API_DOCUMENTATION_TOKEN }}
 
       - run: find pages -mindepth 1 -maxdepth 1 -not -name ".git" -delete
 
@@ -33,9 +34,6 @@ jobs:
         working-directory: pages
 
       - run: git add --all
-        working-directory: pages
-
-      - run: git remote set-url origin https://oauth2:${{ SECRETS.INDIFFERENCE_ENGINE_API_DOCUMENTATION_TOKEN }}@github.com/siliconspecter/indifference-engine-api-documentation.git
         working-directory: pages
 
       - run: git diff --staged --quiet --exit-code || (git commit --message "Update pushed automatically."; git push)

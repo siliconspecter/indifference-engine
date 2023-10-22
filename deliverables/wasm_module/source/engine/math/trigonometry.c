@@ -264,7 +264,7 @@ static const f32 sine_table[] = {
 
 // TODO: Interpolation
 
-f32 sin(f32 radians)
+f32 sine(f32 radians)
 {
   const s32 period = 1024;
   const f32 unrounded = radians * (period / PI);
@@ -297,7 +297,7 @@ f32 sin(f32 radians)
   }
 }
 
-f32 cos(f32 radians)
+f32 cosine(f32 radians)
 {
   const s32 period = 1024;
   const f32 unrounded = radians * (period / PI);

@@ -237,6 +237,10 @@ components also uses up finite resources; there is a fixed-size pool of
 components, and most component types themselves have fixed-size pools of data
 which can be exhausted.
 
+##### Camera components
+
+TODO
+
 ##### Selectable components
 
 While you are unlikely to be directly creating or interacting with selectable

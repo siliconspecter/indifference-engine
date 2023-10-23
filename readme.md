@@ -175,3 +175,5 @@ If any event handler throws a trap, the hosting runtime must NOT execute any
 further event handlers nor persist any buffers until the game is fully
 restarted (i.e. all memory reset to its state before the first event handler was
 called).
+
+TODO move all documentation into doxygen

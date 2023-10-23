@@ -50,14 +50,14 @@ f32 dot_product(
 }
 
 f32 distance_squared(
-    const vector a,
-    const vector b)
+    const vector origin,
+    const vector destination)
 {
   f32 distance = 0;
 
   for (index component = 0; component < VECTOR_COMPONENTS; component++)
   {
-    const f32 difference = a[component] - b[component];
+    const f32 difference = destination[component] - origin[component];
     distance += difference * difference;
   }
 

@@ -61,14 +61,14 @@ f32 dot_product(
 
 /**
  * Calculates the square of the distance between two vectors.
- * @param a The first vector to measure.
- * @param b The second vector to measure.
+ * @param origin The first vector to measure.
+ * @param destination The second vector to measure.
  * @return The square of the distance between the given three-dimensional
  *         vectors.
  */
 f32 distance_squared(
-    const vector a,
-    const vector b);
+    const vector origin,
+    const vector destination);
 
 /**
  * Linearly interpolates between two vectors using a scalar.

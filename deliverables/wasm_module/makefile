@@ -10,7 +10,7 @@ DEVELOPMENT_O_FILES = $(patsubst ephemeral/production/%,ephemeral/development/%,
 TOTAL_REBUILD_FILES = makefile $(H_FILES)
 
 default:
-	$(error Please run either "make production" or "make development")
+	$(error Please run "make production", or "make development", "make clean" or "make api_documentation" and add " --jobs" for faster builds with less clear error messages)
 
 production: ephemeral/production/build/module.wasm
 development: ephemeral/development/build/module.wasm
@@ -35,4 +35,4 @@ ephemeral/production/build/module.wasm: $(PRODUCTION_O_FILES)
 
 ephemeral/development/build/module.wasm: $(DEVELOPMENT_O_FILES)
 	mkdir -p $(dir $@)
-	$(CC) $(DEVELOPMENT_CFLAGS) -Wl,--no-entry -Wl,--export-dynamic $(PRODUCTION_O_FILES) -o $@
+	$(CC) $(DEVELOPMENT_CFLAGS) -Wl,--no-entry -Wl,--export-dynamic $(DEVELOPMENT_O_FILES) -o $@

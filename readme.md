@@ -40,15 +40,22 @@ exist.
 
 Buffer identifiers fall into the following ranges, inclusive:
 
-##### 0 ... 1073741823 - Game State
+##### `0` ... `1073741823` - State
 
-All buffers in this range represent game state which the hosting runtime is
-permitted to persist a copy of when the game requests it (see below).  When the
-game next starts, the hosting runtime is permitted to overwrite the memory for
-these buffers with the copy it persisted, even if the WASM module has been
-updated.  Buffers which have changed in size must NOT be overwritten.
+All buffers in this range represent state which the hosting runtime is permitted
+to persist a copy of when the game requests it (see below).  When the game next
+starts, the hosting runtime is permitted to overwrite the memory for these
+buffers with the copy it persisted, even if the WASM module has been updated.
+Buffers which have changed in size must NOT be overwritten.
 
-##### 1073741824 to 2147483647 - Optional IO
+Identifiers `0` to `536870911` are for the game itself, while identifiers
+`536870912` to `1073741823` are reserved for the engine.
+
+| Identifier  | Description                                            |
+| ----------- | ------------------------------------------------------ |
+| `536870912` | Identifier of script to execute at next game start-up. |
+
+##### `1073741824` to `2147483647` - Optional IO
 
 All buffers in this range represent fully optional IO:
 
@@ -130,7 +137,7 @@ by the engine.
 | ----- | ---------------------- |
 | `0`   | No error has occurred. |
 
-##### -2147483648 to -1073741825 - IO required by hosting runtime
+##### `-2147483648` to `-1073741825` - IO required by hosting runtime
 
 All buffers in this range represent IO required by the hosting runtime:
 
@@ -141,7 +148,7 @@ All buffers in this range represent IO required by the hosting runtime:
 
 Currently nothing is defined in this range.
 
-##### -1073741824 to -1 - IO required by WASM module
+##### `-1073741824` to `-1` - IO required by WASM module
 
 All buffers in this range represent IO required by the WASM module:
 

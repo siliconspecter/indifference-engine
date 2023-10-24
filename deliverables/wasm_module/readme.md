@@ -72,6 +72,7 @@ For example, a file named `car.h` might resemble the following:
 
 ### Callbacks
 
+TODO revise
 A typedef is created for each callback type, named `{verb}_callback`.  Any
 parameters using the callback are named `on_{verb}`.  Verbs are in
 non-continuous present tense, e.g. `click` rather than `clicked` or `clicking`.
@@ -194,15 +195,14 @@ of entities may require adjustments to
 [source/engine/limits.h](./source/engine/limits.h) to increase the size of the
 pool.
 
-TODO: move limits
-
 ##### Transforming
 
 Initially, all entities are given the "identity" transform, that is, equivalent
 to being located at 0, 0, 0, rotated by 0, 0, 0 and scaled by 1, 1, 1.
 
-This can be adjusted during scripts, click handlers or when timers tick or
-expire (doing so in other situations may produce unexpected results):
+This can be adjusted during scripts, selectable callbacks, tick callbacks, timer
+expiry callbacks or animation callbacks (doing so in other situations may
+produce unexpected results):
 
 ```c
 transform(
@@ -280,6 +280,10 @@ TODO
 TODO
 
 ##### Animated opaque billboard components
+
+TODO
+
+##### Tick components
 
 TODO
 

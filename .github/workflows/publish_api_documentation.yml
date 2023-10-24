@@ -4,7 +4,7 @@ on:
       - main
 
 jobs:
-  public-api-documentation:
+  publish-api-documentation:
     if: github.repository == 'siliconspecter/indifference-engine'
     runs-on: ubuntu-latest
     steps:
@@ -14,18 +14,18 @@ jobs:
 
       - run: sudo apt-get install doxygen
 
-      - run: make api_documentation
-        working-directory: main/deliverables/wasm_module
+      - run: doxygen
+        working-directory: main/deliverables/documentation
 
       - uses: actions/checkout@v3
         with:
           repository: siliconspecter/indifference-engine-api-documentation
           path: pages
-          token: ${{ SECRETS.INDIFFERENCE_ENGINE_API_DOCUMENTATION_TOKEN }}
+          ref: pages
 
       - run: find pages -mindepth 1 -maxdepth 1 -not -name ".git" -exec rm -r {} \;
 
-      - run: cp -r main/deliverables/wasm_module/ephemeral/api_documentation/html/* pages
+      - run: cp -r main/deliverables/documentation/ephemeral/html/* pages
 
       - run: git config user.email siliconspecter@outlook.com
         working-directory: pages

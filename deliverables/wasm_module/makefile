@@ -10,13 +10,10 @@ DEVELOPMENT_O_FILES = $(patsubst ephemeral/production/%,ephemeral/development/%,
 TOTAL_REBUILD_FILES = makefile $(H_FILES)
 
 default:
-	$(error Please run "make production", or "make development", "make clean" or "make api_documentation" and add " --jobs" for faster builds with less clear error messages)
+	$(error Please run "make production", or "make development" or "make clean" and add " --jobs" for faster builds with less clear error messages)
 
 production: ephemeral/production/build/module.wasm
 development: ephemeral/development/build/module.wasm
-api_documentation:
-	rm -rf ephemeral/api_documentation
-	doxygen
 
 clean:
 	find ephemeral -mindepth 1 ! -name '.gitignore' -exec rm -rf {} +

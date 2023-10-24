@@ -1,3 +1,5 @@
+/** @file */
+
 #ifndef RELATIONAL_H
 
 #define RELATIONAL_H

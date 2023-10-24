@@ -1,3 +1,5 @@
+/** @file */
+
 #ifndef PERSIST_H
 
 #define PERSIST_H

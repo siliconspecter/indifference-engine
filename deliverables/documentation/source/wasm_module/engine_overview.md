@@ -1,138 +1,12 @@
-# [![Indifference Engine](../../branding/logo_readme.gif)](../../readme.md) > WASM Module
+# WASM module engine overview
 
-The WASM Module is written using C, using Make as a build tool.
+What follows is a description of how the [engine API](./engine_api.md) is
+intended to be used to build your game.
 
-## Installing and configuring dependencies
-
-These instructions assume that you are running Windows 10 or 11 without any
-development tools installed, and that you have a local copy of this repository.
-
-- Run the [Git installer](https://git-scm.com/).  All of the default settings
-  should suffice.
-- Run the
-  [GNU make installer](https://gnuwin32.sourceforge.net/packages/make.htm)
-  (Download > Complete package, except sources > Setup).  All of the default
-  settings should suffice.
-- Run the [LLVM installer](https://releases.llvm.org/).  The latest version
-  and all default settings should suffice, other than adding LLVM to the system
-  PATH for all users.
-- Run the
-  [MinGW-W64-binaries installer](https://github.com/niXman/mingw-builds-binaries).
-  All default settings should suffice, other than selecting `64 bit`
-  architecture.
-- Press the Windows key.
-- Type `environment`.
-- Select `Edit the system environment variables`.
-- Click `Environment Variables...`.
-- In the upper pane (`User variables for `(name)), double click on the row with
-  a `Variable` of `Path`.
-- Click `New`.
-- Type `C:\Program Files (x86)\GnuWin32\bin` and press enter.
-- Click `Ok`.
-- Click `Ok`.
-- Click `Ok`.
-- Restart your machine.
-
-## Building
-
-- Open a terminal in this directory.
-- Type `make production` for an optimized build or `make development` for a fast
-  build.
-- The built WASM module can be found at
-  [ephemeral/production/build/module.wasm](./ephemeral/production/build/module.wasm)
-  or
-  [ephemeral/development/build/module.wasm](./ephemeral/development/build/module.wasm)
-  respectively.
-
-## Conventions
-
-American English in `snake_case` is used for declaration names.
-
-Preprocessor macro names are in `UPPER_CASE` while everything else is in
-`lower_case`.
-
-Lines are kept to 80 characters in length where possible.  Sometimes, IDE
-formatting or large singular words make this impossible.
-
-### Namespacing
-
-Header files contain a header guard named `{file name}_H`.
-
-For example, a file named `car.h` might resemble the following:
-
-```c
-#ifndef CAR_H
-
-#define CAR_H
-
-// Declarations go here.
-
-#endif
-```
-
-### Callbacks
-
-TODO revise
-A typedef is created for each callback type, named `{verb}_callback`.  Any
-parameters using the callback are named `on_{verb}`.  Verbs are in
-non-continuous present tense, e.g. `click` rather than `clicked` or `clicking`.
-
-### Parameter order
-
-Where possible, parameters are ordered as a form of pipeline from left to right.
-For example, a function filtering light through a gel to produce a color would
-be ordered the same (light, gel, color).
-
-### Memory management
-
-No dynamic memory allocator is available, so all state which must persist
-between event handlers must be statically allocated as global variables.  For
-small-scale games, which are bounded simulations, this is less of a problem than
-may be expected.
-
-## API documentation
-
-All types, variables, functions and preprocessor macros which form the engine's
-API are documented through comments.  You can browse the documentation generated
-from these documents by Doxygen
-[here](https://siliconspecter.github.io/indifference-engine-api-documentation/).
-
-### Installing dependencies to generate API documentation
-
-These instructions assume that you are running Windows 10 or 11 without any
-development tools installed, and that you have a local copy of this repository.
-
-- Run the [Doxygen installer](https://www.doxygen.nl/download.html).  All of the
-  default settings should suffice.
-- Press the Windows key.
-- Type `environment`.
-- Select `Edit the system environment variables`.
-- Click `Environment Variables...`.
-- In the upper pane (`User variables for `(name)), double click on the row with
-  a `Variable` of `Path`.
-- Click `New`.
-- Type `C:\Program Files\doxygen\bin` and press enter.
-- Click `Ok`.
-- Click `Ok`.
-- Click `Ok`.
-- Restart your machine.
-
-### Generating API documentation
-
-- Open a terminal in this directory.
-- Type `make api_documentation`.
-- The generated API documentation can be found at
-  [ephemeral/api_documentation](./ephemeral/api_documentation).
-
-## Creating games
-
-What follows is a description of how the engine API is intended to be used to
-build your game.
-
-### Persistence
+## Persistence
 
 Entries need to be added to the list in
-[source/game/state/index.h](./source/game/state/index.h) for each region of
+@ref deliverables/wasm_module/source/game/state/index.h for each region of
 memory which needs to be retained between runs of the game.  Note that the exact
 raw bytes specified in those buffers will be persisted; indices into data which
 is _not_ explicitly persisted and all data and function pointers will become
@@ -146,7 +20,7 @@ still be populated.
 State can only be saved by the hosting runtime after `persist_state` is called
 and the current event handler subsequently returns successfully.
 
-### Scripts
+## Scripts
 
 A script is a function executed to populate an empty scene (see below).  The
 engine will automatically run the script with identifier `0` the first time the
@@ -163,19 +37,19 @@ script to run.  This will:
 
 TODO: adding a new script
 
-### Scenes
+## Scenes
 
 There is one scene at a time.  This is a void which can be populated with
 entities.  The scene is _not_ persisted as state.
 
 TODO: units, axes, etc.
 
-#### Entities
+### Entities
 
 An entity is, at its core, a transform (location, rotation, scale, etc.) and a
 collection of associated components.
 
-##### Creating
+#### Creating
 
 A new entity can be created with an initial transform by calling `entity`:
 
@@ -192,10 +66,10 @@ with an unexpected, different entity which has since been given the same index!
 Additionally, entities are allocated out of a finite pool.  The engine will
 throw a trap should this resource be exhausted.  Games requiring large amounts
 of entities may require adjustments to
-[source/engine/limits.h](./source/engine/limits.h) to increase the size of the
-pool.
+@ref deliverables/wasm_module/source/engine/limits.h to increase the size of the
+appropriate pools.
 
-##### Transforming
+#### Transforming
 
 Initially, all entities are given the "identity" transform, that is, equivalent
 to being located at 0, 0, 0, rotated by 0, 0, 0 and scaled by 1, 1, 1.
@@ -213,7 +87,7 @@ transform(
 );
 ```
 
-##### Destroying
+#### Destroying
 
 Call `destroy_entity` and ensure that you do not keep any references to it:
 
@@ -222,7 +96,7 @@ destroy_entity(previously_created_entity);
 previously_created_entity = INDEX_NONE;
 ```
 
-#### Components
+### Components
 
 Components are how the player interacts with entities; they produce video,
 audio, handle input and advance game state.  Destroying an entity automatically
@@ -237,11 +111,11 @@ components also uses up finite resources; there is a fixed-size pool of
 components, and most component types themselves have fixed-size pools of data
 which can be exhausted.
 
-##### Camera components
+#### Camera components
 
 TODO
 
-##### Selectable components
+#### Selectable components
 
 While you are unlikely to be directly creating or interacting with selectable
 components, many other component types internally use them and expose their
@@ -267,67 +141,67 @@ Where multiple selectable components cover the same pixel, the closest by Z
 depth is considered to be hovered/confirmed/selected/etc. when the pointer
 occupies said pixel, even if it lacks a state change callback.
 
-##### Opaque mesh components
+#### Opaque mesh components
 
 TODO
 
-##### Animated opaque mesh components
+#### Animated opaque mesh components
 
 TODO
 
-##### Opaque billboard components
+#### Opaque billboard components
 
 TODO
 
-##### Animated opaque billboard components
+#### Animated opaque billboard components
 
 TODO
 
-##### Tick components
+#### Tick components
 
 TODO
 
-##### Timer components
+#### Timer components
 
 TODO
 
-##### Navigation mesh components
+#### Navigation mesh components
 
 TODO
 
-###### Structure
+##### Structure
 
 TODO
 
-###### Finding closest
+##### Finding closest
 
 TODO
 
-###### Constraining to volumes
+##### Constraining to volumes
 
 TODO
 
-###### Constraining to surfaces
+##### Constraining to surfaces
 
 TODO
 
-###### Collision
+##### Collision
 
 TODO
 
-###### Navigation
+##### Navigation
 
 TODO
 
-##### Sound components
+#### Sound components
 
 TODO
 
-##### Song components
+#### Song components
 
 TODO
 
-##### Destroying components
+#### Destroying components
 
 Components of any type can be destroyed by calling `destroy_component` and
 ensuring that you do not keep any references to them:
@@ -337,38 +211,38 @@ destroy_component(previously_created_component);
 previously_created_component = INDEX_NONE;
 ```
 
-##### Creating custom components
+#### Creating custom components
 
 TODO
 
-### Assets
+## Assets
 
 TODO
 
-#### `*.tga` files
+### *.tga files
 
 TODO
 
-#### `*.obj` files
+### *.obj files
 
 TODO
 
-##### Meshes
+#### Meshes
 
 TODO
 
-##### Navigation meshes
+#### Navigation meshes
 
 TODO
 
-##### Blender plug-in
+#### Blender plug-in
 
 TODO
 
-#### `*.wav` files
+### *.wav files
 
 TODO
 
-#### `*.mod` files
+### *.mod files
 
 TODO

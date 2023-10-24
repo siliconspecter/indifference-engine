@@ -1,3 +1,5 @@
+/** @file */
+
 #ifndef S32_H
 
 #define S32_H

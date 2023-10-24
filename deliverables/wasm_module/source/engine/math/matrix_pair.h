@@ -1,3 +1,5 @@
+/** @file */
+
 #ifndef MATRIX_PAIR_H
 
 #define MATRIX_PAIR_H

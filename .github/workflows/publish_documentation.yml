@@ -9,32 +9,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-        with:
-          path: main
-
       - run: sudo apt-get install doxygen
 
       - run: doxygen
-        working-directory: main/deliverables/documentation
+        working-directory: deliverables/documentation
 
-      - uses: actions/checkout@v3
+      - uses: actions/configure-pages@v3
+
+      - uses: actions/upload-pages-artifact@v2
         with:
-          repository: siliconspecter/indifference-engine
-          path: pages
-          ref: pages
-
-      - run: find pages -mindepth 1 -maxdepth 1 -not -name ".git" -exec rm -r {} \;
-
-      - run: cp -r main/deliverables/documentation/ephemeral/html/* pages
-
-      - run: git config user.email siliconspecter@outlook.com
-        working-directory: pages
-
-      - run: git config user.name siliconspecter
-        working-directory: pages
-
-      - run: git add --all
-        working-directory: pages
-
-      - run: git diff --staged --quiet --exit-code || (git commit --message "Update pushed automatically."; git push)
-        working-directory: pages
+          path: 'deliverables/documentation/ephemeral/html'
+      - uses: actions/deploy-pages@v2

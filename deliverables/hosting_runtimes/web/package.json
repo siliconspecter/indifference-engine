@@ -1,0 +1,26 @@
+{
+  "name": "indifference-engine-web-runtime",
+  "description": "Hosts an Indifference Engine WASM module in a web browser.",
+  "version": "0.0.0",
+  "devDependencies": {
+    "7zip-bin": "^5.2.0",
+    "eslint": "^8.45.0",
+    "eslint-config-standard": "^17.1.0",
+    "eslint-plugin-html": "^7.1.0",
+    "eslint-plugin-import": "^2.27.5",
+    "eslint-plugin-n": "^16.0.1",
+    "eslint-plugin-promise": "^6.1.1",
+    "favicons": "^7.1.3",
+    "html-minifier": "^4.0.0",
+    "http-server": "^14.1.1",
+    "node-zopflipng": "^2.0.0",
+    "uglify-js": "^3.17.4"
+  },
+  "scripts": {
+    "build": "node scripts/build.js",
+    "host": "http-server ephemeral/build",
+    "lint": "eslint \"source/**.js\" \"source/**.html\"",
+    "lint-fix": "eslint --fix \"source/**.js\" \"source/**.html\""
+  },
+  "type": "module"
+}

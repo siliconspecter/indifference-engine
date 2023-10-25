@@ -1,0 +1,554 @@
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>Indifference Engine</title>
+
+  <!-- INSERT-FAVICONS-GENERATED-HTML-HERE -->
+
+  <style>
+    html {
+      font-family: Helvetica, Arial, sans-serif;
+      background: black;
+      color: white;
+      font-size: 5vmin;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      cursor: default;
+    }
+
+    div {
+      width: calc(100vw - 3rem);
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+    }
+
+    p {
+      display: inline-block;
+      text-align: left;
+    }
+
+    canvas {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      cursor: none;
+      visibility: hidden;
+      image-rendering: pixelated;
+    }
+  </style>
+</head>
+
+<body>
+  <div>
+    <p>Starting up...</p>
+  </div>
+  <canvas></canvas>
+  <script defer>
+    const messageElement = document.getElementsByTagName('p')[0]
+
+    const setMessage = (to) => {
+      messageElement.textContent = to
+      messageElement.style.visibility = 'visible'
+    }
+
+    const loadGame = async () => {
+      setMessage('Loading game...')
+
+      let module
+
+      try {
+        module = await WebAssembly.instantiateStreaming(fetch('INSERT-WASM-MODULE-PATH-HERE' + '?' + Date.now()))
+
+        setMessage('Starting game...')
+
+        const getExported = (name) => {
+          if (Object.prototype.hasOwnProperty.call(module.instance.exports, name)) {
+            return module.instance.exports[name]
+          } else {
+            throw new Error(`The game lacks a "${name}" export.`)
+          }
+        }
+
+        const memory = getExported('memory')
+
+        if (!(memory instanceof WebAssembly.Memory)) {
+          throw new Error("The game's \"memory\" export is not WebAssembly memory.")
+        }
+
+        const getFunction = (name) => {
+          const exported = getExported(name)
+
+          if (typeof exported === 'function') {
+            return exported
+          } else {
+            throw new Error(`The game's "${name}" export is not a function.`)
+          }
+        }
+
+        const getConstant = (functionName) => getFunction(functionName)()
+
+        const getNumericConstant = (functionName) => {
+          const constant = getConstant(functionName)
+
+          if (typeof constant !== 'number') {
+            throw new Error(`The game's "${name}" export did not return a number.`)
+          } else if (!Number.isFinite(constant)) {
+            throw new Error(`The game's "${name}" export returned a number which is not finite.`)
+          } else {
+            return constant
+          }
+        }
+
+        const getIntegerConstant = (functionName) => {
+          const number = getNumericConstant(functionName)
+
+          if (Number.isSafeInteger(number)) {
+            return number
+          } else {
+            throw new Error(`The game's "${name}" export returned a number which is not an integer.`)
+          }
+        }
+
+        const getUnsignedI32Constant = (functionName) => {
+          const integer = getIntegerConstant(functionName)
+
+          if (integer < 0) {
+            throw new Error(`The game's "${name}" export returned a number which is lesser than that of a valid unsigned i32.`)
+          } else if (integer > 4294967295) {
+            throw new Error(`The game's "${name}" export returned a number which is greater than that of a valid unsigned i32.`)
+          } else {
+            return integer
+          }
+        }
+
+        const getNullableUtf8EncodedString = (functionName) => {
+          const integer = getIntegerConstant(functionName)
+
+          if (integer < 0) {
+            throw new Error(`The game's "${name}" export returned a pointer which overlaps the start of memory.`)
+          } else if (integer === 0) {
+            return null
+          } else if (integer >= memory.buffer.byteLength) {
+            throw new Error(`The game's "${name}" export returned a pointer which overlaps the end of memory.`)
+          } else {
+            const bytes = new Uint8ClampedArray(memory.buffer, integer)
+
+            let accumulator = ''
+
+            for (const byte of bytes) {
+              if (byte === 0) {
+                return accumulator
+              } else {
+                // TODO: Properly decode UTF-8.
+                accumulator += String.fromCodePoint(byte)
+              }
+            }
+
+            throw new Error(`The game's "${name}" export returned a pointer to memory which lacks a null terminator.`)
+          }
+        }
+
+        const getMemoryPointer = (functionName, constructor, length) => {
+          const integer = getIntegerConstant(functionName)
+
+          if (integer < 0) {
+            throw new Error(`The game's "${name}" export returned a pointer which overlaps the start of memory.`)
+          } else if (integer + length * constructor.BYTES_PER_ELEMENT > memory.buffer.byteLength) {
+            throw new Error(`The game's "${name}" export returned a pointer which overlaps the end of memory.`)
+          } else if (integer % constructor.BYTES_PER_ELEMENT !== 0) {
+            throw new Error(`The game's "${name}" export returned a pointer which is not aligned correctly (must be a multiple of ${constructor.BYTES_PER_ELEMENT}).`)
+          } else {
+            return new constructor(memory.buffer, integer, length)
+          }
+        }
+
+        try {
+          const advance = getFunction('advance')
+
+          let cursorClicking = false
+          let cursorAvailable = false
+
+          let cursorX = 0
+          let cursorY = 0
+
+          const performAdvance = () => {
+            const flags = advance(cursorY, cursorX, cursorAvailable ? (cursorClicking ? 2 : 1) : 0)
+
+            switch (flags) {
+              case 0:
+                break
+
+              case 1: {
+                const output = []
+
+                for (const [identifier, buffer] of state.entries()) {
+                  output.push({
+                    identifier,
+                    data: Array.from(buffer)
+                  })
+                }
+
+                localStorage.setItem('INSERT-LOCAL-STORAGE-PREFIX-HERE-state', JSON.stringify(output))
+                break
+              }
+
+              default:
+                throw new Error(`Unsupported advance result "${flags}".`)
+            }
+          }
+
+          const audioBufferLengthSamplePairs = getUnsignedI32Constant('audio_buffer_length_sample_pairs')
+
+          if (audioBufferLengthSamplePairs === 0) {
+            throw new Error("The game's audio buffer must contain at least one sample pair.")
+          }
+
+          const audioBufferSamplePairsPerSecond = getUnsignedI32Constant('audio_buffer_sample_pairs_per_second')
+
+          if (audioBufferLengthSamplePairs === 0) {
+            throw new Error("The game's audio buffer must be played back at least one hertz.")
+          }
+
+          const secondsPerAudioBuffer = audioBufferLengthSamplePairs / audioBufferSamplePairsPerSecond
+
+          const audioBufferSamples = getMemoryPointer('audio_buffer_sample_pairs', Float32Array, audioBufferLengthSamplePairs * 2)
+
+          const videoBufferRows = getUnsignedI32Constant('video_buffer_rows')
+          const videoBufferTopSafeAreaInsetRows = getConstant('video_buffer_top_safe_area_inset_rows')
+          const videoBufferBottomSafeAreaInsetRows = getConstant('video_buffer_bottom_safe_area_inset_rows')
+
+          if (videoBufferRows - videoBufferTopSafeAreaInsetRows - videoBufferBottomSafeAreaInsetRows <= 0) {
+            throw new Error("The game's video buffer does not contain any rows in the safe area.")
+          }
+
+          const videoBufferColumns = getUnsignedI32Constant('video_buffer_columns')
+          const videoBufferLeftSafeAreaInsetColumns = getConstant('video_buffer_left_safe_area_inset_columns')
+          const videoBufferRightSafeAreaInsetColumns = getConstant('video_buffer_right_safe_area_inset_columns')
+
+          if (videoBufferColumns - videoBufferLeftSafeAreaInsetColumns - videoBufferRightSafeAreaInsetColumns <= 0) {
+            throw new Error("The game's video buffer does not contain any column in the safe area.")
+          }
+
+          const videoBufferColors = getMemoryPointer('video_buffer_colors', Uint8ClampedArray, 4 * videoBufferRows * videoBufferColumns)
+
+          const videoBufferImageData = new ImageData(videoBufferColors, videoBufferColumns, videoBufferRows)
+
+          const canvasElement = document.getElementsByTagName('canvas')[0]
+          canvasElement.height = videoBufferRows
+          canvasElement.width = videoBufferColumns
+
+          canvasElement.addEventListener('mousemove', (e) => {
+            cursorAvailable = true
+            cursorX = e.layerX
+            cursorY = e.layerY
+          })
+
+          canvasElement.addEventListener('mouseout', (e) => {
+            cursorAvailable = false
+            cursorClicking = false
+          })
+
+          canvasElement.addEventListener('mousedown', () => {
+            cursorClicking = true
+          })
+
+          canvasElement.addEventListener('mouseup', () => {
+            cursorClicking = false
+          })
+
+          const canvasContext = canvasElement.getContext('2d')
+
+          if (canvasContext === null) {
+            throw new Error('Failed to create a 2D context for the canvas.')
+          }
+
+          const stateBuffers = getUnsignedI32Constant('state_buffers')
+          const stateBufferSizes = getMemoryPointer('state_buffer_sizes', Uint32Array, stateBuffers)
+          const stateBufferIdentifiers = getMemoryPointer('state_buffer_identifiers', Uint32Array, stateBuffers)
+          const stateBufferLocations = getMemoryPointer('state_buffer_locations', Uint32Array, stateBuffers)
+
+          const state = new Map()
+
+          for (let i = 0; i < stateBuffers; i++) {
+            const identifier = stateBufferIdentifiers[i]
+
+            if (state.has(identifier)) {
+              throw new Error(`State identifier "${identifier}" appears more than once.`)
+            } else {
+              const size = stateBufferSizes[i]
+              const location = stateBufferLocations[i]
+
+              if (location + size > memory.buffer.byteLength) {
+                throw new Error(`State "${identifier}" overlaps the end of memory.`)
+              } else {
+                state.set(identifier, new Uint8Array(memory.buffer, location, size))
+              }
+            }
+          }
+
+          // TODO: improve efficiency of state persistence in terms of storage space
+          const localStorageText = localStorage.getItem('INSERT-LOCAL-STORAGE-PREFIX-HERE-state')
+
+          if (localStorageText !== null) {
+            const localStorageJson = JSON.parse(localStorageText)
+
+            for (const entry of localStorageJson) {
+              const buffer = state.get(entry.identifier)
+
+              if (buffer !== undefined && buffer.byteLength === entry.data.length) {
+                for (let i = 0; i < buffer.byteLength; i++) {
+                  buffer[i] = entry.data[i]
+                }
+              }
+            }
+          }
+
+          let previousTimeStamp = null
+          let bankedSeconds = 0
+
+          let audioContext = null
+          let lastAudioBufferEndsAt = null
+
+          const outputAudio = () => {
+            const audioBuffer = audioContext.createBuffer(2, audioBufferLengthSamplePairs, audioBufferSamplePairsPerSecond)
+
+            const nextEnd = lastAudioBufferEndsAt + secondsPerAudioBuffer
+
+            const left = audioBuffer.getChannelData(0)
+            const right = audioBuffer.getChannelData(1)
+
+            for (let sampleIndex = 0; sampleIndex < audioBufferLengthSamplePairs; sampleIndex++) {
+              const readOffset = sampleIndex * 2
+
+              left[sampleIndex] = audioBufferSamples[readOffset]
+              right[sampleIndex] = audioBufferSamples[readOffset + 1]
+            }
+
+            const audioBufferSourceNode = audioContext.createBufferSource()
+            audioBufferSourceNode.buffer = audioBuffer
+            audioBufferSourceNode.connect(audioContext.destination)
+            audioBufferSourceNode.start(lastAudioBufferEndsAt)
+
+            return nextEnd
+          }
+
+          const render = () => {
+            canvasContext.putImageData(videoBufferImageData, 0, 0)
+          }
+
+          let previousWindowHeight = null
+          let previousWindowWidth = null
+
+          const shutdownTasks = []
+
+          const maximumSecondsToPlayBack = 0.2
+
+          let animationFrame = null
+          const onAnimationFrame = (timeStamp) => {
+            try {
+              animationFrame = null
+
+              const windowHeight = window.innerHeight
+              const windowWidth = window.innerWidth
+
+              if (windowHeight !== previousWindowHeight || windowWidth !== previousWindowWidth) {
+                const heightScale = windowHeight / (videoBufferRows - videoBufferTopSafeAreaInsetRows - videoBufferBottomSafeAreaInsetRows)
+                const widthScale = windowWidth / (videoBufferColumns - videoBufferLeftSafeAreaInsetColumns - videoBufferRightSafeAreaInsetColumns)
+                const scale = Math.min(heightScale, widthScale)
+                canvasElement.style.transform = `translate(-50%, -50%) scale(${scale}) translate(${(videoBufferRightSafeAreaInsetColumns - videoBufferLeftSafeAreaInsetColumns) / 2}px, ${(videoBufferBottomSafeAreaInsetRows - videoBufferTopSafeAreaInsetRows) / 2}px)`
+
+                previousWindowHeight = windowHeight
+                previousWindowWidth = windowWidth
+              }
+
+              if (audioContext === null || audioContext.state !== 'running') {
+                bankedSeconds += Math.min(Math.max(0, (timeStamp - previousTimeStamp) / 1000), maximumSecondsToPlayBack)
+
+                while (bankedSeconds >= secondsPerAudioBuffer) {
+                  performAdvance()
+                  render()
+
+                  bankedSeconds -= secondsPerAudioBuffer
+                }
+              } else {
+                const now = audioContext.currentTime
+                const target = previousTimeStamp === null ? now : now + Math.max(0, (timeStamp - previousTimeStamp) * 0.002) // TODO: maybe possible to eliminate
+
+                if (lastAudioBufferEndsAt === null) {
+                  lastAudioBufferEndsAt = now
+                } else {
+                  lastAudioBufferEndsAt = Math.max(lastAudioBufferEndsAt, target - maximumSecondsToPlayBack)
+                }
+
+                let hasEmittedAtLeastOnce = false
+                while (lastAudioBufferEndsAt < target) {
+                  performAdvance()
+                  lastAudioBufferEndsAt = outputAudio()
+                  hasEmittedAtLeastOnce = true
+                }
+
+                // todo: pause on blur
+                // TODO: resume if suspended
+
+                if (hasEmittedAtLeastOnce) {
+                  render()
+                }
+              }
+
+              previousTimeStamp = timeStamp
+
+              animationFrame = requestAnimationFrame(onAnimationFrame)
+            } catch (reason) {
+              console.error(reason)
+              canvasElement.style.visibility = 'hidden'
+              setMessage('An error occurred while the game was running.  Please reload the page.  Report this problem alongside the name and version of your browser, operating system and device should it persist.')
+
+              while (shutdownTasks.length > 0) {
+                shutdownTasks.pop()()
+              }
+
+              try {
+                const errorMessage = getNullableUtf8EncodedString('error_message')
+
+                if (errorMessage !== null) {
+                  console.error(errorMessage)
+                }
+              } catch (e) {
+                console.error(e)
+              }
+            }
+          }
+
+          const createWebAudioContextIfMissing = () => {
+            if (audioContext === null && 'AudioContext' in window) {
+              audioContext = new AudioContext()
+
+              shutdownTasks.push(() => {
+                audioContext.close()
+                audioContext = null
+              })
+            }
+          }
+
+          const handleErrorsDuringEventHandler = (body) => (...args) => {
+            try {
+              body(...args)
+            } catch (reason) {
+              console.error(reason)
+              canvasElement.style.visibility = 'hidden'
+              setMessage('An error occurred while the game was running.  Please reload the page.  Report this problem alongside the name and version of your browser, operating system and device should it persist.')
+
+              while (shutdownTasks.length > 0) {
+                shutdownTasks.pop()()
+              }
+            }
+          }
+
+          const keypress = () => {
+            createWebAudioContextIfMissing()
+          }
+
+          try {
+            addEventListener('keypress', handleErrorsDuringEventHandler(keypress))
+
+            shutdownTasks.push(() => {
+              removeEventListener('keypress', handleErrorsDuringEventHandler(keypress))
+            })
+
+            const mousedown = () => {
+              createWebAudioContextIfMissing()
+            }
+
+            addEventListener('mousedown', handleErrorsDuringEventHandler(mousedown))
+
+            shutdownTasks.push(() => {
+              removeEventListener('mousedown', handleErrorsDuringEventHandler(mousedown))
+            })
+
+            const touchstart = () => {
+              createWebAudioContextIfMissing()
+            }
+
+            addEventListener('touchstart', handleErrorsDuringEventHandler(touchstart))
+
+            shutdownTasks.push(() => {
+              removeEventListener('touchstart', handleErrorsDuringEventHandler(touchstart))
+            })
+
+            performAdvance()
+            render()
+
+            shutdownTasks.push(() => {
+              if (animationFrame !== null) {
+                cancelAnimationFrame(animationFrame)
+                animationFrame = null
+              }
+            })
+
+            animationFrame = requestAnimationFrame(onAnimationFrame)
+
+            messageElement.style.visibility = 'hidden'
+            canvasElement.style.visibility = 'visible'
+          } catch (e) {
+            while (shutdownTasks.length > 0) {
+              shutdownTasks.pop()()
+            }
+
+            try {
+              const errorMessage = getNullableUtf8EncodedString('error_message')
+
+              if (errorMessage !== null) {
+                console.error(errorMessage)
+              }
+            } catch (e) {
+              console.error(e)
+            }
+
+            throw e
+          }
+        } catch (e) {
+          try {
+            const errorMessage = getNullableUtf8EncodedString('error_message')
+
+            if (errorMessage !== null) {
+              console.error(errorMessage)
+            }
+          } catch (e) {
+            console.error(e)
+          }
+
+          throw e
+        }
+      } catch (reason) {
+        console.error(reason)
+        setMessage('Failed to load the game.  Please ensure that you have a stable internet connection and reload the page.  Report this problem alongside the name and version of your browser, operating system and device should it persist.')
+      }
+    }
+
+    if ('serviceWorker' in navigator) {
+      setMessage('Registering service worker...')
+
+      navigator.serviceWorker
+        .register('INSERT-SERVICE-WORKER-JS-PATH-HERE')
+        .then(() => {
+          loadGame()
+        })
+        .catch(reason => {
+          console.error(reason)
+          setMessage('Failed to configure a service worker.  Please reload the page.  Report this problem alongside the name and version of your browser, operating system and device should it persist.')
+        })
+    } else {
+      loadGame()
+    }
+  </script>
+</body>
+
+</html>

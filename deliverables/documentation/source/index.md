@@ -16,7 +16,8 @@ packaged together:
 - An entirely self-contained WASM module containing all logic and data needed to
   run the game to completion, which is identical across all platforms.  Details
   can be found [here](./wasm_module/index.md).
-- A platform-specific runtime which hosts the WASM module. TODO link
+- A platform-specific runtime which hosts the WASM module.  These are listed
+  [here](./hosting_runtimes/index.md).
 
 For details regarding the protocol between the two components, please
 [see here](./protocol.md).

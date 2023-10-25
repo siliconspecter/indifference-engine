@@ -28,6 +28,8 @@ development tools installed, and that you have a local copy of this repository.
   a `Variable` of `Path`.
 - Click `New`.
 - Type `C:\Program Files (x86)\GnuWin32\bin` and press enter.
+- Click `New`.
+- Type `C:\Users\YOUR USER NAME\mingw64\bin` and press enter.
 - Click `Ok`.
 - Click `Ok`.
 - Click `Ok`.

@@ -66,8 +66,8 @@ with an unexpected, different entity which has since been given the same index!
 Additionally, entities are allocated out of a finite pool.  The engine will
 throw a trap should this resource be exhausted.  Games requiring large amounts
 of entities may require adjustments to
-@ref deliverables/wasm_module/source/engine/limits.h to increase the size of the
-appropriate pools.
+@ref deliverables/wasm_module/source/game/project_settings/limits.h to increase
+the size of the appropriate pools.
 
 #### Transforming
 
@@ -244,5 +244,9 @@ TODO
 TODO
 
 ### *.mod files
+
+TODO
+
+## Project Settings
 
 TODO

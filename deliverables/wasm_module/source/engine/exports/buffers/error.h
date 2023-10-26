@@ -4,7 +4,7 @@
 
 #define ERROR_H
 
-#include "../primitives/s32.h"
+#include "../../primitives/s32.h"
 
 /**
  * Indicates that no error has occurred.

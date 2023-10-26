@@ -4,7 +4,7 @@
 
 #define PERSIST_H
 
-#include "../primitives/s32.h"
+#include "../../primitives/s32.h"
 
 /**
  * Indicates that no persistence is to occur until further notice.

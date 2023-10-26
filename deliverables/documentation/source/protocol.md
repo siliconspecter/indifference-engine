@@ -71,11 +71,11 @@ All buffers in this range represent fully optional IO:
 
 ##### Pointing Device States
 
-| State | Location Known | Selecting | Description                                                                                   |
-| ----- | -------------- | --------- | --------------------------------------------------------------------------------------------- |
-| `0`   | No.            | No.       | No pointing device is known to be available.                                                  |
-| `1`   | Yes.           | No.       | The pointing device is a mouse.  Its location is known but it is not currently clicking.      |
-| `2`   | Yes.           | Yes.      | The pointing device is a mouse.  Its location is known and the button is currently held down. |
+| State | Location Known | Selecting | Description                                                                                           |
+| ----- | -------------- | --------- | ----------------------------------------------------------------------------------------------------- |
+| `0`   | No.            | No.       | No pointing device is known to be available.                                                          |
+| `1`   | Yes.           | No.       | The pointing device is a mouse.  Its location is known but it is not currently clicking.              |
+| `2`   | Yes.           | Yes.      | The pointing device is a mouse.  Its location is known and its primary button is currently held down. |
 
 ##### Controller States
 

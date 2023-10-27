@@ -13,9 +13,6 @@ WASM module and its hosting runtime:
 | `buffer_sizes`       | Returns a pointer to a packed sequence of `i32`s (one per buffer, each indicating the size of a buffer in bytes, in the same order as that returned by `buffer_pointers`).  Must be aligned to a multiple of the size of an `i32`.  Contents are not permitted to change.  |
 | `buffer_identifiers` | Returns a pointer to a packed sequence of `i32`s (one per buffer, each uniquely identifying a buffer (see below), in the same order as that returned by `buffer_pointers`).  Must be aligned to a multiple of the size of an `i32`.  Contents are not permitted to change. |
 
-The hosting runtime is to act as though buffers of an unexpected size do not
-exist.
-
 ### Identifiers
 
 Buffer identifiers fall into the following ranges, inclusive:
@@ -44,6 +41,8 @@ All buffers in this range represent fully optional IO:
 - If the WASM module does not list an identifier recognized by the hosting
   runtime within the range, the hosting runtime accepts this and continues
   running the game without attempting to read from nor write to the range.
+- If the size of any IO buffer is incorrect or inconsistent with others, the
+  game cannot start.
 
 | Identifier   | Type  | Count                                            | Pointer aligned to multiple of | Description                                                                                                                                                                                                                                                                   |
 | ------------ | ----- | ------------------------------------------------ | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -125,6 +124,8 @@ All buffers in this range represent IO required by the hosting runtime:
   hosting runtime does not read from nor write to it.
 - If the WASM module does not list an identifier recognized by the hosting
   runtime within the range, the hosting runtime cannot run the game.
+- If the size of any IO buffer is incorrect or inconsistent with others, the
+  game cannot start.
 
 Currently nothing is defined in this range.
 
@@ -137,6 +138,8 @@ All buffers in this range represent IO required by the WASM module:
 - If the WASM module does not list an identifier recognized by the hosting
   runtime within the range, the hosting runtime accepts this and continues
   running the game without attempting to read from nor write to the range.
+- If the size of any IO buffer is incorrect or inconsistent with others, the
+  game cannot start.
 
 Currently nothing is defined in this range.
 

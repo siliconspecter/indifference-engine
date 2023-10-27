@@ -16,12 +16,14 @@ API are documented through comments and are listed here for quick reference.
 
 ## Exports
 
-| Header                                                                | Description                                                     |
-| --------------------------------------------------------------------- | --------------------------------------------------------------- |
-| @ref deliverables/wasm_module/source/engine/exports/buffers/audio.h   | The audio output buffer and associated state.                   |
-| @ref deliverables/wasm_module/source/engine/exports/buffers/error.h   | Helpers for throwing traps to the hosting platform.             |
-| @ref deliverables/wasm_module/source/engine/exports/buffers/persist.h | Helpers for notifying the hosting platform what it may persist. |
-| @ref deliverables/wasm_module/source/engine/exports/buffers/video.h   | The video output buffer and associated state.                   |
+| Header                                                                      | Description                                                     |
+| --------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| @ref deliverables/wasm_module/source/engine/exports/buffers/audio.h         | The audio output buffer and associated state.                   |
+| @ref deliverables/wasm_module/source/engine/exports/buffers/controllers.h   | The state of the controllers.                                   |
+| @ref deliverables/wasm_module/source/engine/exports/buffers/error.h         | Helpers for throwing traps to the hosting platform.             |
+| @ref deliverables/wasm_module/source/engine/exports/buffers/persist.h       | Helpers for notifying the hosting platform what it may persist. |
+| @ref deliverables/wasm_module/source/engine/exports/buffers/pointer.h       | The state of the pointing device.                               |
+| @ref deliverables/wasm_module/source/engine/exports/buffers/video.h         | The video output buffer and associated state.                   |
 
 ## Math
 

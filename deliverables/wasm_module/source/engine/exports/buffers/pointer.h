@@ -5,14 +5,6 @@
 #define POINTER_H
 
 #include "../../primitives/s32.h"
-#include "../../primitives/f32.h"
-#include "../../video/color.h"
-#include "../../../game/project_settings/video_settings.h"
-
-/**
- * The state of the pointing device, if any.
- */
-typedef s32 pointer_state;
 
 /**
  * No pointing device is known to be available.
@@ -30,5 +22,22 @@ typedef s32 pointer_state;
  * primary button.
  */
 #define POINTER_STATE_MOUSE_CLICKING_PRIMARY 2
+
+/**
+ * The state of the pointing device, if any.
+ */
+extern s32 pointer_state;
+
+/**
+ * The number of rows between the top of the video buffer and the pointer, if
+ * known (@ref pointer_state).
+ */
+extern s32 pointer_row;
+
+/**
+ * The number of columns between the left of the video buffer and the pointer,
+ * if known (@ref pointer_state).
+ */
+extern s32 pointer_column;
 
 #endif

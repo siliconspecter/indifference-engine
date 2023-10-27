@@ -8,6 +8,8 @@
 #include "video.h"
 #include "persist.h"
 #include "error.h"
+#include "pointer.h"
+#include "controllers.h"
 
 const s32 ticks_per_second = TICKS_PER_SECOND;
 const s32 samples_per_tick = SAMPLES_PER_TICK;
@@ -54,15 +56,15 @@ EXPORT s32 buffer_count()
 EXPORT void **buffer_pointers()
 {
   index buffer = 0;
-#define BUFFER_POINTER (identifier, data) ie_state_buffer_pointers[buffer++] = &data;
+#define BUFFER_POINTER(identifier, data) buffer_pointer_values[buffer++] = (void *)&data;
   BUFFER_LIST(BUFFER_POINTER)
-  return ie_state_buffer_pointers;
+  return buffer_pointer_values;
 }
 
 EXPORT s32 *buffer_sizes()
 {
   index buffer = 0;
-#define BUFFER_SIZE (identifier, data) buffer_size_values[buffer++] = sizeof(data);
+#define BUFFER_SIZE(identifier, data) buffer_size_values[buffer++] = sizeof(data);
   BUFFER_LIST(BUFFER_SIZE)
   return buffer_size_values;
 }
@@ -70,7 +72,7 @@ EXPORT s32 *buffer_sizes()
 EXPORT s32 *buffer_identifiers()
 {
   index buffer = 0;
-#define BUFFER_IDENTIFIER (identifier, data) buffer_identifier_values[buffer++] = identifier;
+#define BUFFER_IDENTIFIER(identifier, data) buffer_identifier_values[buffer++] = identifier;
   BUFFER_LIST(BUFFER_IDENTIFIER)
   return buffer_identifier_values;
 }

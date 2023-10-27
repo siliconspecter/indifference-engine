@@ -3,7 +3,6 @@
 #include "../../primitives/index.h"
 #include "../../../game/project_settings/timing_settings.h"
 #include "../../../game/project_settings/video_settings.h"
-#include "../../../game/project_settings/audio_settings.h"
 #include "audio.h"
 #include "video.h"
 #include "persist.h"
@@ -12,32 +11,30 @@
 #include "controllers.h"
 
 const s32 ticks_per_second = TICKS_PER_SECOND;
-const s32 samples_per_tick = SAMPLES_PER_TICK;
 const s32 maximum_video_rows = MAXIMUM_VIDEO_ROWS;
 const s32 safe_area_rows = SAFE_AREA_ROWS;
 const s32 safe_area_columns = SAFE_AREA_COLUMNS;
 
-#define BUFFER_LIST(item)                                                                                     \
-  item(1073741824, ticks_per_second)                                                                          \
-      item(1073741825, samples_per_tick)                                                                      \
-          item(1073741826, audio_buffer)                                                                      \
-              item(1073741827, maximum_video_rows)                                                            \
-                  item(1073741828, safe_area_rows)                                                            \
-                      item(1073741839, safe_area_columns)                                                     \
-                          item(1073741830, video_buffer)                                                      \
-                              item(1073741831, pointer_state)                                                 \
-                                  item(1073741832, pointer_row)                                               \
-                                      item(1073741833, pointer_column)                                        \
-                                          item(1073741834, persist)                                           \
-                                              item(1073741835, tick_progress)                                 \
-                                                  item(1073741836, video_rows)                                \
-                                                      item(1073741837, video_columns)                         \
-                                                          item(1073741838, listener_location)                 \
-                                                              item(1073741839, listener_normal)               \
-                                                                  item(1073741840, controller_states)         \
-                                                                      item(1073741841, controller_y_axes)     \
-                                                                          item(1073741842, controller_x_axes) \
-                                                                              item(1073741843, error)
+#define BUFFER_LIST(item)                                                                                 \
+  item(1073741824, ticks_per_second)                                                                      \
+      item(1073741825, audio_buffer)                                                                      \
+          item(1073741826, maximum_video_rows)                                                            \
+              item(1073741827, safe_area_rows)                                                            \
+                  item(1073741828, safe_area_columns)                                                     \
+                      item(1073741829, video_buffer)                                                      \
+                          item(1073741830, pointer_state)                                                 \
+                              item(1073741831, pointer_row)                                               \
+                                  item(1073741832, pointer_column)                                        \
+                                      item(1073741833, persist)                                           \
+                                          item(1073741834, tick_progress)                                 \
+                                              item(1073741835, video_rows)                                \
+                                                  item(1073741836, video_columns)                         \
+                                                      item(1073741837, listener_location)                 \
+                                                          item(1073741838, listener_normal)               \
+                                                              item(1073741839, controller_states)         \
+                                                                  item(1073741840, controller_y_axes)     \
+                                                                      item(1073741841, controller_x_axes) \
+                                                                          item(1073741842, error)
 
 // TODO: macro for NULL
 #define BUFFER_NULL(identifier, data) (void *)0,

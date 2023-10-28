@@ -16,6 +16,6 @@
  * @param condition The condition which must be truthy (non-zero) for
  *                  compilation to succeed.
  */
-#define ASSERT(description, condition) typedef int assert_##description[2 * !!(condition)-1]
+#define ASSERT(description, condition) typedef int assert_##description[1 - !(condition) * 2]
 
 #endif

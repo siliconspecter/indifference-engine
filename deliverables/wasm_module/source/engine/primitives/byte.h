@@ -4,12 +4,12 @@
 
 #define BYTE_H
 
-#include <stdint.h>
+#include "../miscellaneous.h"
 
 /**
  * Represents an unsigned byte.
  */
-typedef uint8_t byte;
+typedef unsigned char byte;
 
 /**
  * The minimum value of an unsigned byte.
@@ -19,6 +19,8 @@ typedef uint8_t byte;
 /**
  * The maximum value of an unsigned byte.
  */
-#define BYTE_MAX UINT8_MAX
+#define BYTE_MAX 255
+
+ASSERT(byte_size, sizeof(byte) == 1);
 
 #endif

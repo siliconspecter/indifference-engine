@@ -9,6 +9,7 @@
 #include "error.h"
 #include "pointer.h"
 #include "controllers.h"
+#include "../../miscellaneous.h"
 
 const s32 ticks_per_second = TICKS_PER_SECOND;
 const s32 maximum_video_rows = MAXIMUM_VIDEO_ROWS;
@@ -36,8 +37,7 @@ const s32 safe_area_columns = SAFE_AREA_COLUMNS;
                                                                       item(1073741841, controller_x_axes) \
                                                                           item(1073741842, error)
 
-// TODO: macro for NULL
-#define BUFFER_NULL(identifier, data) (void *)0,
+#define BUFFER_NULL(identifier, data) NULL,
 
 void *buffer_pointer_values[] = {BUFFER_LIST(BUFFER_NULL)};
 s32 buffer_size_values[sizeof(buffer_pointer_values) / sizeof(buffer_pointer_values[0])];

@@ -42,6 +42,7 @@
       cursor: none;
       visibility: hidden;
       image-rendering: pixelated;
+      background: red;
     }
   </style>
 </head>
@@ -91,9 +92,9 @@
         }
 
         const getOptionalFunction = (name) => {
-          const exported = getOptionalFunction(name)
+          const exported = getOptionalExport(name)
 
-          if (typeof exported === 'function') {
+          if (exported === null || typeof exported === 'function') {
             return exported
           } else {
             throw new Error(`The WASM module's "${name}" export is not a function.`)
@@ -189,6 +190,10 @@
         let controllerXAxes = null
         let error = null
 
+        const localStorageText = localStorage.getItem('INSERT-LOCAL-STORAGE-KEY-HERE')
+
+        const localStorageJson = localStorageText === null ? null : JSON.parse(localStorageText)
+
         for (let i = 0; i < stateBuffers; i++) {
           const identifier = stateBufferIdentifiers[i]
 
@@ -203,7 +208,19 @@
             } else if (location + size > memory.buffer.byteLength) {
               throw new Error(`Buffer "${identifier}" overlaps the end of memory.`)
             } else if (identifier >= 0 && identifier <= 1073741823) {
-              state.set(identifier, new Uint8Array(memory.buffer, location, size))
+              const state = new Uint8Array(memory.buffer, location, size)
+
+              state.set(identifier, state)
+
+              if (localStorageJson !== null && Object.prototype.hasOwnProperty.call(localStorageJson, identifier)) {
+                const persisted = atob(localStorageJson[identifier])
+
+                if (persisted.length === state.length) {
+                  for (let index = 0; index < persisted.length; index++) {
+                    state[index] = persisted.codePointAt(index)
+                  }
+                }
+              }
             } else if (identifier >= -1073741824 && identifier <= -1) {
               throw new Error(`Buffer "${identifier}" is required by the WASM module but is not supported by this hosting runtime.`)
             } else {
@@ -497,13 +514,130 @@
         if (controllerXAxes !== null && controllerXAxes.length !== controllerStates.length) {
           throw new Error(`Inconsistent number of controllers between states (${controllerStates.length}) and X axes (${controllerXAxes.length}).`)
         }
+
+        // TODO: video/videoCOlors combine check
+
+        // TODO
+        if (videoColors === null) {
+          throw new Error('Games without video colors are currently unsupported.')
+        }
+
+        // TODO
+        if (tick === null) {
+          throw new Error('Games without tick are currently unsupported.')
+        }
+
+        let previousVideoRows = null
+        let previousVideoColumns = null
+
+        let videoColorsImageData = null
+
+        let canvasVisible = false
+
+        const canvasElement = document.getElementsByTagName('canvas')[0]
+        // canvasElement.height = videoBufferRows
+        // canvasElement.width = videoBufferColumns
+
+        canvasElement.addEventListener('mousemove', (e) => {
+          // cursorAvailable = true
+          // cursorX = e.layerX
+          // cursorY = e.layerY
+        })
+
+        canvasElement.addEventListener('mouseout', (e) => {
+          // cursorAvailable = false
+          // cursorClicking = false
+        })
+
+        canvasElement.addEventListener('mousedown', () => {
+          // cursorClicking = true
+        })
+
+        canvasElement.addEventListener('mouseup', () => {
+          // cursorClicking = false
+        })
+
+        const canvasContext = canvasElement.getContext('2d')
+
+        if (canvasContext === null) {
+          throw new Error('Failed to create a 2D context for the canvas.')
+        }
+
+        let previousTimestamp = null
+
+        const nextAnimationFrame = (timestamp) => {
+          try {
+            const windowRows = window.innerHeight
+            const rowScale = windowRows / safeAreaRows
+            const windowColumns = window.innerWidth
+            const columnScale = windowColumns / safeAreaColumns
+            const scale = Math.min(rowScale, columnScale)
+            const nextVideoRows = Math.max(1, Math.floor(Math.min(maximumVideoRows, windowRows / scale)))
+            const nextVideoColumns = Math.max(1, Math.floor(Math.min(maximumVideoColumns, windowColumns / scale)))
+
+            if (nextVideoRows !== previousVideoRows || nextVideoColumns !== previousVideoColumns) {
+              canvasElement.height = nextVideoRows
+              canvasElement.width = nextVideoColumns
+              canvasElement.style.transform = `translate(-50%, -50%) scale(${scale})`
+
+              console.log(nextVideoColumns, nextVideoRows, videoColors.length)
+
+              videoColorsImageData = new ImageData(videoColors, nextVideoColumns, nextVideoRows)
+
+              previousVideoRows = nextVideoRows
+              previousVideoColumns = nextVideoColumns
+            }
+
+            // TODO: Update pointer state
+
+            if (previousTimestamp !== null && tickProgress !== null) {
+              // TODO: Skip most of this if the audio system is running
+              const deltaTicks = Math.min(Math.max(100, 1000 / ticksPerSecond), Math.max(0, timestamp - previousTimestamp)) / (1000 / ticksPerSecond)
+
+              tickProgress[0] += deltaTicks
+
+              while (tickProgress[0] >= 1) {
+                tick()
+                tickProgress[0]--
+              }
+
+              previousTimestamp = timestamp
+            }
+
+            // TODO: Execute render callback
+
+            if (!canvasVisible) {
+              canvasElement.style.visibility = 'visible'
+              canvasVisible = true
+            }
+
+            // TODO: Add canvas element and hide message if detached
+
+            requestAnimationFrame(nextAnimationFrame)
+          } catch (reason) {
+            console.error(reason)
+
+            if (canvasVisible) {
+              canvasElement.style.visibility = 'hidden'
+            }
+
+            // TODO: Stop audio context
+
+            setMessage('Failed to run the game.  Please ensure reload the page.  Report this problem alongside the name and version of your browser, operating system and device should it persist.')
+          }
+        }
+
+        requestAnimationFrame(nextAnimationFrame)
+
+        // TODO: create canvas, requestAnimationFrame
+        // TODO: tick may end up here
       } catch (reason) {
         console.error(reason)
         setMessage('Failed to load the game.  Please ensure that you have a stable internet connection and reload the page.  Report this problem alongside the name and version of your browser, operating system and device should it persist.')
       }
     }
 
-    if ('serviceWorker' in navigator) {
+    if (false && ('serviceWorker' in navigator)) {
       setMessage('Registering service worker...')
 
       navigator.serviceWorker

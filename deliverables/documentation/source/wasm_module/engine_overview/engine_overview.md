@@ -83,7 +83,8 @@ transform(
   location_vector,
   rotation_vector,
   scale_vector,
-  entity_transforms[previously_created_entity]
+  entity_transforms[previously_created_entity],
+  entity_inverse_transforms[previously_created_entity]
 );
 ```
 

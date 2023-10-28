@@ -31,7 +31,6 @@ API are documented through comments and are listed here for quick reference.
 | --------------------------------------------------------------- | ----------------------------------------------------- |
 | @ref deliverables/wasm_module/source/engine/math/culled_by.h    | Culling results.                                      |
 | @ref deliverables/wasm_module/source/engine/math/float.h        | Floating point helpers.                               |
-| @ref deliverables/wasm_module/source/engine/math/matrix_pair.h  | Forward/inverse pairs of 4x4 transformation matrices. |
 | @ref deliverables/wasm_module/source/engine/math/matrix.h       | 4x4 transformation matrices.                          |
 | @ref deliverables/wasm_module/source/engine/math/relational.h   | Number comparison helpers.                            |
 | @ref deliverables/wasm_module/source/engine/math/trigonometry.h | Trigonometry helpers.                                 |

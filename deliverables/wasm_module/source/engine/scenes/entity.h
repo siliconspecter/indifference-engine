@@ -5,7 +5,7 @@
 #define ENTITY_H
 
 #include "../primitives/index.h"
-#include "../math/matrix_pair.h"
+#include "../math/matrix.h"
 #include "../limits.h"
 
 /**
@@ -16,12 +16,24 @@
 index entity();
 
 /**
- * The transforms of all entities.
+ * The forward transforms of all entities.
  * @remark Modify only during scripts, selectable callbacks, tick callbacks,
  *         timer expiry callbacks or animation callbacks (doing so in other
  *         situations may produce unexpected results).
+ * @remark Any changes made to this array MUST be mirrorred in
+ *         @ref entity_inverse_transforms.
  */
-extern matrix_pair entity_transforms[MAXIMUM_ENTITIES];
+extern matrix entity_transforms[MAXIMUM_ENTITIES];
+
+/**
+ * The forward transforms of all entities.
+ * @remark Modify only during scripts, selectable callbacks, tick callbacks,
+ *         timer expiry callbacks or animation callbacks (doing so in other
+ *         situations may produce unexpected results).
+ * @remark Any changes made to this array MUST be mirrorred in
+ *         @ref entity_inverse_transforms.
+ */
+extern matrix entity_inverse_transforms[MAXIMUM_ENTITIES];
 
 /**
  * Destroys a previously created entity and all components within it.

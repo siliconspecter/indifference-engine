@@ -42,7 +42,6 @@
       cursor: none;
       visibility: hidden;
       image-rendering: pixelated;
-      background: red;
     }
   </style>
 </head>
@@ -580,9 +579,7 @@
               canvasElement.width = nextVideoColumns
               canvasElement.style.transform = `translate(-50%, -50%) scale(${scale})`
 
-              console.log(nextVideoColumns, nextVideoRows, videoColors.length)
-
-              videoColorsImageData = new ImageData(videoColors, nextVideoColumns, nextVideoRows)
+              videoColorsImageData = new ImageData(new Uint8ClampedArray(videoColors.buffer, 0, nextVideoRows * nextVideoColumns * 4), nextVideoColumns, nextVideoRows)
 
               previousVideoRows = nextVideoRows
               previousVideoColumns = nextVideoColumns

@@ -1,5 +1,5 @@
 #include "../export.h"
 
-EXPORT void video()
+EXPORT void tick()
 {
 }

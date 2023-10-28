@@ -22,7 +22,7 @@ extern s32 video_columns;
 /**
  * The video output buffer, running from left to right, then top to bottom.
  */
-extern color video_buffer[MAXIMUM_VIDEO_ROWS * MAXIMUM_VIDEO_COLUMNS];
+extern color video_colors[MAXIMUM_VIDEO_ROWS * MAXIMUM_VIDEO_COLUMNS];
 
 /**
  * The progress through the current tick, where 0 is the start and 1 is the end.

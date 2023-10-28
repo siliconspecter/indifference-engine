@@ -17,11 +17,11 @@ const s32 safe_area_columns = SAFE_AREA_COLUMNS;
 
 #define BUFFER_LIST(item)                                                                                 \
   item(1073741824, ticks_per_second)                                                                      \
-      item(1073741825, audio_buffer)                                                                      \
+      item(1073741825, audio_samples)                                                                     \
           item(1073741826, maximum_video_rows)                                                            \
               item(1073741827, safe_area_rows)                                                            \
                   item(1073741828, safe_area_columns)                                                     \
-                      item(1073741829, video_buffer)                                                      \
+                      item(1073741829, video_colors)                                                      \
                           item(1073741830, pointer_state)                                                 \
                               item(1073741831, pointer_row)                                               \
                                   item(1073741832, pointer_column)                                        \

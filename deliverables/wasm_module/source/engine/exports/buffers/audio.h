@@ -23,6 +23,6 @@ extern vector listener_normal;
  * The audio output buffer, running from earlier to later, where each sample
  * ranges from -1 to 1.
  */
-extern f32 audio_buffer[SAMPLES_PER_TICK];
+extern f32 audio_samples[SAMPLES_PER_TICK];
 
 #endif

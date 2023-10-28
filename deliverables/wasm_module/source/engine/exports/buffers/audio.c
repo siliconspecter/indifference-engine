@@ -4,6 +4,6 @@
 
 vector listener_location;
 
-vector listener_normal;
+vector listener_normal = {0, 0, -1};
 
-f32 audio_buffer[SAMPLES_PER_TICK];
+f32 audio_samples[SAMPLES_PER_TICK];

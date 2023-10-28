@@ -54,18 +54,13 @@
   <script defer>
     const messageElement = document.getElementsByTagName('p')[0]
 
-    const setMessage = (to) => {
-      messageElement.textContent = to
-      messageElement.style.visibility = 'visible'
-    }
-
     const loadGame = async () => {
-      setMessage('Loading game...')
+      messageElement.textContent = 'Loading game...'
 
       try {
         const module = await WebAssembly.instantiateStreaming(fetch('INSERT-WASM-MODULE-PATH-HERE' + '?' + Date.now()))
 
-        setMessage('Starting game...')
+        messageElement.textContent = 'Starting game...'
 
         const getOptionalExport = (name) => {
           if (Object.prototype.hasOwnProperty.call(module.instance.exports, name)) {
@@ -402,7 +397,7 @@
           throw new Error('Length of video colors not evenly divisible by the maximum number of video rows.')
         }
 
-        const maximumVideoColumns = videoColors.length / maximumVideoRows
+        const maximumVideoColumns = videoColors.length / 4 / maximumVideoRows
 
         if (safeAreaRows !== null && videoColors === null) {
           safeAreaRows = null
@@ -526,8 +521,7 @@
           throw new Error('Games without tick are currently unsupported.')
         }
 
-        let previousVideoRows = null
-        let previousVideoColumns = null
+        let previousScale = null
 
         let videoColorsImageData = null
 
@@ -570,19 +564,24 @@
             const rowScale = windowRows / safeAreaRows
             const windowColumns = window.innerWidth
             const columnScale = windowColumns / safeAreaColumns
-            const scale = Math.min(rowScale, columnScale)
-            const nextVideoRows = Math.max(1, Math.floor(Math.min(maximumVideoRows, windowRows / scale)))
-            const nextVideoColumns = Math.max(1, Math.floor(Math.min(maximumVideoColumns, windowColumns / scale)))
+            const nextScale = Math.min(rowScale, columnScale)
 
-            if (nextVideoRows !== previousVideoRows || nextVideoColumns !== previousVideoColumns) {
+            if (nextScale !== previousScale) {
+              canvasElement.style.transform = `translate(-50%, -50%) scale(${nextScale})`
+              previousScale = nextScale
+            }
+
+            const nextVideoRows = Math.min(maximumVideoRows, Math.max(safeAreaRows, Math.floor(Math.min(maximumVideoRows, windowRows / nextScale))))
+            const nextVideoColumns = Math.min(maximumVideoColumns, Math.max(safeAreaColumns, Math.floor(Math.min(maximumVideoColumns, windowColumns / nextScale))))
+
+            if (nextVideoRows !== videoRows[0] || nextVideoColumns !== videoColumns[0]) {
               canvasElement.height = nextVideoRows
               canvasElement.width = nextVideoColumns
-              canvasElement.style.transform = `translate(-50%, -50%) scale(${scale})`
 
               videoColorsImageData = new ImageData(new Uint8ClampedArray(videoColors.buffer, 0, nextVideoRows * nextVideoColumns * 4), nextVideoColumns, nextVideoRows)
 
-              previousVideoRows = nextVideoRows
-              previousVideoColumns = nextVideoColumns
+              videoRows[0] = nextVideoRows
+              videoColumns[0] = nextVideoColumns
             }
 
             // TODO: Update pointer state
@@ -605,22 +604,22 @@
 
             if (!canvasVisible) {
               canvasElement.style.visibility = 'visible'
+              messageElement.style.visibility = 'hidden'
               canvasVisible = true
             }
-
-            // TODO: Add canvas element and hide message if detached
 
             requestAnimationFrame(nextAnimationFrame)
           } catch (reason) {
             console.error(reason)
 
+            messageElement.textContent = 'Failed to run the game.  Please ensure reload the page.  Report this problem alongside the name and version of your browser, operating system and device should it persist.'
+
             if (canvasVisible) {
+              messageElement.style.visibility = 'visible'
               canvasElement.style.visibility = 'hidden'
             }
 
             // TODO: Stop audio context
-
-            setMessage('Failed to run the game.  Please ensure reload the page.  Report this problem alongside the name and version of your browser, operating system and device should it persist.')
           }
         }
 
@@ -630,12 +629,12 @@
         // TODO: tick may end up here
       } catch (reason) {
         console.error(reason)
-        setMessage('Failed to load the game.  Please ensure that you have a stable internet connection and reload the page.  Report this problem alongside the name and version of your browser, operating system and device should it persist.')
+        messageElement.textContent = 'Failed to load the game.  Please ensure that you have a stable internet connection and reload the page.  Report this problem alongside the name and version of your browser, operating system and device should it persist.'
       }
     }
 
     if (false && ('serviceWorker' in navigator)) {
-      setMessage('Registering service worker...')
+      messageElement.textContent = 'Registering service worker...'
 
       navigator.serviceWorker
         .register('INSERT-SERVICE-WORKER-JS-PATH-HERE')
@@ -644,7 +643,7 @@
         })
         .catch(reason => {
           console.error(reason)
-          setMessage('Failed to configure a service worker.  Please reload the page.  Report this problem alongside the name and version of your browser, operating system and device should it persist.')
+          messageElement.textContent = 'Failed to configure a service worker.  Please reload the page.  Report this problem alongside the name and version of your browser, operating system and device should it persist.'
         })
     } else {
       loadGame()

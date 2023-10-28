@@ -62,46 +62,63 @@
     const loadGame = async () => {
       setMessage('Loading game...')
 
-      let module
-
       try {
-        module = await WebAssembly.instantiateStreaming(fetch('INSERT-WASM-MODULE-PATH-HERE' + '?' + Date.now()))
+        const module = await WebAssembly.instantiateStreaming(fetch('INSERT-WASM-MODULE-PATH-HERE' + '?' + Date.now()))
 
         setMessage('Starting game...')
 
-        const getExported = (name) => {
+        const getOptionalExport = (name) => {
           if (Object.prototype.hasOwnProperty.call(module.instance.exports, name)) {
             return module.instance.exports[name]
           } else {
-            throw new Error(`The game lacks a "${name}" export.`)
+            return null
           }
         }
 
-        const memory = getExported('memory')
-
-        if (!(memory instanceof WebAssembly.Memory)) {
-          throw new Error("The game's \"memory\" export is not WebAssembly memory.")
+        const getRequiredExport = (name) => {
+          const exported = getOptionalExport(name)
+          if (exported === null) {
+            throw new Error(`The WASM module lacks a "${name}" export.`)
+          } else {
+            return exported
+          }
         }
 
-        const getFunction = (name) => {
-          const exported = getExported(name)
+        const memory = getRequiredExport('memory')
+
+        if (!(memory instanceof WebAssembly.Memory)) {
+          throw new Error("The WASM module's \"memory\" export is not WebAssembly memory.")
+        }
+
+        const getOptionalFunction = (name) => {
+          const exported = getOptionalFunction(name)
 
           if (typeof exported === 'function') {
             return exported
           } else {
-            throw new Error(`The game's "${name}" export is not a function.`)
+            throw new Error(`The WASM module's "${name}" export is not a function.`)
           }
         }
 
-        const getConstant = (functionName) => getFunction(functionName)()
+        const getRequiredFunction = (name) => {
+          const exported = getOptionalFunction(name)
+
+          if (exported === null) {
+            throw new Error(`The WASM module lacks a "${name}" export.`)
+          } else {
+            return exported
+          }
+        }
+
+        const getConstant = (functionName) => getRequiredFunction(functionName)()
 
         const getNumericConstant = (functionName) => {
           const constant = getConstant(functionName)
 
           if (typeof constant !== 'number') {
-            throw new Error(`The game's "${name}" export did not return a number.`)
+            throw new Error(`The WASM module's "${name}" export did not return a number.`)
           } else if (!Number.isFinite(constant)) {
-            throw new Error(`The game's "${name}" export returned a number which is not finite.`)
+            throw new Error(`The WASM module's "${name}" export returned a number which is not finite.`)
           } else {
             return constant
           }
@@ -113,46 +130,19 @@
           if (Number.isSafeInteger(number)) {
             return number
           } else {
-            throw new Error(`The game's "${name}" export returned a number which is not an integer.`)
+            throw new Error(`The WASM module's "${name}" export returned a number which is not an integer.`)
           }
         }
 
-        const getUnsignedI32Constant = (functionName) => {
+        const getUnsignedS32Constant = (functionName) => {
           const integer = getIntegerConstant(functionName)
 
-          if (integer < 0) {
-            throw new Error(`The game's "${name}" export returned a number which is lesser than that of a valid unsigned i32.`)
-          } else if (integer > 4294967295) {
-            throw new Error(`The game's "${name}" export returned a number which is greater than that of a valid unsigned i32.`)
+          if (integer < -2147483648) {
+            throw new Error(`The WASM module's "${name}" export returned a number which is lesser than that of a valid unsigned s32.`)
+          } else if (integer > 2147483647) {
+            throw new Error(`The WASM module's "${name}" export returned a number which is greater than that of a valid unsigned s32.`)
           } else {
             return integer
-          }
-        }
-
-        const getNullableUtf8EncodedString = (functionName) => {
-          const integer = getIntegerConstant(functionName)
-
-          if (integer < 0) {
-            throw new Error(`The game's "${name}" export returned a pointer which overlaps the start of memory.`)
-          } else if (integer === 0) {
-            return null
-          } else if (integer >= memory.buffer.byteLength) {
-            throw new Error(`The game's "${name}" export returned a pointer which overlaps the end of memory.`)
-          } else {
-            const bytes = new Uint8ClampedArray(memory.buffer, integer)
-
-            let accumulator = ''
-
-            for (const byte of bytes) {
-              if (byte === 0) {
-                return accumulator
-              } else {
-                // TODO: Properly decode UTF-8.
-                accumulator += String.fromCodePoint(byte)
-              }
-            }
-
-            throw new Error(`The game's "${name}" export returned a pointer to memory which lacks a null terminator.`)
           }
         }
 
@@ -160,372 +150,352 @@
           const integer = getIntegerConstant(functionName)
 
           if (integer < 0) {
-            throw new Error(`The game's "${name}" export returned a pointer which overlaps the start of memory.`)
+            throw new Error(`The WASM module's "${name}" export returned a pointer which overlaps the start of memory.`)
           } else if (integer + length * constructor.BYTES_PER_ELEMENT > memory.buffer.byteLength) {
-            throw new Error(`The game's "${name}" export returned a pointer which overlaps the end of memory.`)
+            throw new Error(`The WASM module's "${name}" export returned a pointer which overlaps the end of memory.`)
           } else if (integer % constructor.BYTES_PER_ELEMENT !== 0) {
-            throw new Error(`The game's "${name}" export returned a pointer which is not aligned correctly (must be a multiple of ${constructor.BYTES_PER_ELEMENT}).`)
+            throw new Error(`The WASM module's "${name}" export returned a pointer which is not aligned correctly (must be a multiple of ${constructor.BYTES_PER_ELEMENT}).`)
           } else {
             return new constructor(memory.buffer, integer, length)
           }
         }
 
-        try {
-          const advance = getFunction('advance')
+        const stateBuffers = getUnsignedS32Constant('buffer_count')
+        const stateBufferLocations = getMemoryPointer('buffer_pointers', Uint32Array, stateBuffers)
+        const stateBufferSizes = getMemoryPointer('buffer_sizes', Int32Array, stateBuffers)
+        const stateBufferIdentifiers = getMemoryPointer('buffer_identifiers', Int32Array, stateBuffers)
+        let tick = getOptionalFunction('tick')
+        let audio = getOptionalFunction('audio')
+        const video = getOptionalFunction('video')
 
-          let cursorClicking = false
-          let cursorAvailable = false
+        const state = new Map()
 
-          let cursorX = 0
-          let cursorY = 0
+        let ticksPerSecond = null
+        let audioSamples = null
+        let maximumVideoRows = null
+        let safeAreaRows = null
+        let safeAreaColumns = null
+        let videoColors = null
+        let pointerState = null
+        let pointerRow = null
+        let pointerColumn = null
+        let persist = null
+        let tickProgress = null
+        let videoRows = null
+        let videoColumns = null
+        let listenerNormal = null
+        let controllerStates = null
+        let controllerYAxes = null
+        let controllerXAxes = null
+        let error = null
 
-          const performAdvance = () => {
-            const flags = advance(cursorY, cursorX, cursorAvailable ? (cursorClicking ? 2 : 1) : 0)
+        for (let i = 0; i < stateBuffers; i++) {
+          const identifier = stateBufferIdentifiers[i]
 
-            switch (flags) {
-              case 0:
-                break
+          if (state.has(identifier)) {
+            throw new Error(`Buffer identifier "${identifier}" appears more than once.`)
+          } else {
+            const size = stateBufferSizes[i]
+            const location = stateBufferLocations[i]
 
-              case 1: {
-                const output = []
-
-                for (const [identifier, buffer] of state.entries()) {
-                  output.push({
-                    identifier,
-                    data: Array.from(buffer)
-                  })
-                }
-
-                localStorage.setItem('INSERT-LOCAL-STORAGE-PREFIX-HERE-state', JSON.stringify(output))
-                break
-              }
-
-              default:
-                throw new Error(`Unsupported advance result "${flags}".`)
-            }
-          }
-
-          const audioBufferLengthSamplePairs = getUnsignedI32Constant('audio_buffer_length_sample_pairs')
-
-          if (audioBufferLengthSamplePairs === 0) {
-            throw new Error("The game's audio buffer must contain at least one sample pair.")
-          }
-
-          const audioBufferSamplePairsPerSecond = getUnsignedI32Constant('audio_buffer_sample_pairs_per_second')
-
-          if (audioBufferLengthSamplePairs === 0) {
-            throw new Error("The game's audio buffer must be played back at least one hertz.")
-          }
-
-          const secondsPerAudioBuffer = audioBufferLengthSamplePairs / audioBufferSamplePairsPerSecond
-
-          const audioBufferSamples = getMemoryPointer('audio_buffer_sample_pairs', Float32Array, audioBufferLengthSamplePairs * 2)
-
-          const videoBufferRows = getUnsignedI32Constant('video_buffer_rows')
-          const videoBufferTopSafeAreaInsetRows = getConstant('video_buffer_top_safe_area_inset_rows')
-          const videoBufferBottomSafeAreaInsetRows = getConstant('video_buffer_bottom_safe_area_inset_rows')
-
-          if (videoBufferRows - videoBufferTopSafeAreaInsetRows - videoBufferBottomSafeAreaInsetRows <= 0) {
-            throw new Error("The game's video buffer does not contain any rows in the safe area.")
-          }
-
-          const videoBufferColumns = getUnsignedI32Constant('video_buffer_columns')
-          const videoBufferLeftSafeAreaInsetColumns = getConstant('video_buffer_left_safe_area_inset_columns')
-          const videoBufferRightSafeAreaInsetColumns = getConstant('video_buffer_right_safe_area_inset_columns')
-
-          if (videoBufferColumns - videoBufferLeftSafeAreaInsetColumns - videoBufferRightSafeAreaInsetColumns <= 0) {
-            throw new Error("The game's video buffer does not contain any column in the safe area.")
-          }
-
-          const videoBufferColors = getMemoryPointer('video_buffer_colors', Uint8ClampedArray, 4 * videoBufferRows * videoBufferColumns)
-
-          const videoBufferImageData = new ImageData(videoBufferColors, videoBufferColumns, videoBufferRows)
-
-          const canvasElement = document.getElementsByTagName('canvas')[0]
-          canvasElement.height = videoBufferRows
-          canvasElement.width = videoBufferColumns
-
-          canvasElement.addEventListener('mousemove', (e) => {
-            cursorAvailable = true
-            cursorX = e.layerX
-            cursorY = e.layerY
-          })
-
-          canvasElement.addEventListener('mouseout', (e) => {
-            cursorAvailable = false
-            cursorClicking = false
-          })
-
-          canvasElement.addEventListener('mousedown', () => {
-            cursorClicking = true
-          })
-
-          canvasElement.addEventListener('mouseup', () => {
-            cursorClicking = false
-          })
-
-          const canvasContext = canvasElement.getContext('2d')
-
-          if (canvasContext === null) {
-            throw new Error('Failed to create a 2D context for the canvas.')
-          }
-
-          const stateBuffers = getUnsignedI32Constant('state_buffers')
-          const stateBufferSizes = getMemoryPointer('state_buffer_sizes', Uint32Array, stateBuffers)
-          const stateBufferIdentifiers = getMemoryPointer('state_buffer_identifiers', Uint32Array, stateBuffers)
-          const stateBufferLocations = getMemoryPointer('state_buffer_locations', Uint32Array, stateBuffers)
-
-          const state = new Map()
-
-          for (let i = 0; i < stateBuffers; i++) {
-            const identifier = stateBufferIdentifiers[i]
-
-            if (state.has(identifier)) {
-              throw new Error(`State identifier "${identifier}" appears more than once.`)
+            if (size === 0) {
+              throw new Error(`Buffer "${identifier}" has a size of 0.`)
+            } else if (location + size > memory.buffer.byteLength) {
+              throw new Error(`Buffer "${identifier}" overlaps the end of memory.`)
+            } else if (identifier >= 0 && identifier <= 1073741823) {
+              state.set(identifier, new Uint8Array(memory.buffer, location, size))
+            } else if (identifier >= -1073741824 && identifier <= -1) {
+              throw new Error(`Buffer "${identifier}" is required by the WASM module but is not supported by this hosting runtime.`)
             } else {
-              const size = stateBufferSizes[i]
-              const location = stateBufferLocations[i]
+              switch (identifier) {
+                case 1073741824:
+                  if (size === 4) {
+                    ticksPerSecond = new Int32Array(memory.buffer, location, 1)[0]
 
-              if (location + size > memory.buffer.byteLength) {
-                throw new Error(`State "${identifier}" overlaps the end of memory.`)
-              } else {
-                state.set(identifier, new Uint8Array(memory.buffer, location, size))
+                    if (ticksPerSecond < 1) {
+                      throw new Error(`Ticks per second incorrect; expected at least 1, actual ${ticksPerSecond}.`)
+                    }
+                  } else {
+                    throw new Error(`Ticks per second size incorrect; expected 4, actual ${size}.`)
+                  }
+                  break
+
+                case 1073741825:
+                  if (size % 4 === 0) {
+                    audioSamples = new Float32Array(memory.buffer, location, size / 4)
+                  } else {
+                    throw new Error(`Audio samples size incorrect; expected multiple of 4, actual ${size}.`)
+                  }
+                  break
+
+                case 1073741826:
+                  if (size === 4) {
+                    maximumVideoRows = new Int32Array(memory.buffer, location, 1)[0]
+
+                    if (maximumVideoRows < 1) {
+                      throw new Error(`Maximum video rows incorrect; expected at least 1, actual ${maximumVideoRows}.`)
+                    }
+                  } else {
+                    throw new Error(`Maximum video rows size incorrect; expected 4, actual ${size}.`)
+                  }
+                  break
+
+                case 1073741827:
+                  if (size === 4) {
+                    safeAreaRows = new Int32Array(memory.buffer, location, 1)[0]
+
+                    if (safeAreaRows < 1) {
+                      throw new Error(`Safe area rows incorrect; expected at least 1, actual ${safeAreaRows}.`)
+                    }
+                  } else {
+                    throw new Error(`Safe area rows size incorrect; expected 4, actual ${size}.`)
+                  }
+                  break
+
+                case 1073741828:
+                  if (size === 4) {
+                    safeAreaColumns = new Int32Array(memory.buffer, location, 1)[0]
+
+                    if (safeAreaColumns < 1) {
+                      throw new Error(`Safe area columns incorrect; expected at least 1, actual ${safeAreaRows}.`)
+                    }
+                  } else {
+                    throw new Error(`Safe area columns size incorrect; expected 4, actual ${size}.`)
+                  }
+                  break
+
+                case 1073741829:
+                  if (size % 4) {
+                    throw new Error(`Video colors size incorrect; expected multiple of 4, actual ${size}.`)
+                  } else {
+                    videoColors = new Uint8ClampedArray(memory.buffer, location, size)
+                  }
+                  break
+
+                case 1073741830:
+                  if (size === 4) {
+                    pointerState = new Int32Array(memory.buffer, location, 1)
+                  } else {
+                    throw new Error(`Pointer state size incorrect; expected 4, actual ${size}.`)
+                  }
+                  break
+
+                case 1073741831:
+                  if (size === 4) {
+                    pointerRow = new Int32Array(memory.buffer, location, 1)
+                  } else {
+                    throw new Error(`Pointer row size incorrect; expected 4, actual ${size}.`)
+                  }
+                  break
+
+                case 1073741832:
+                  if (size === 4) {
+                    pointerColumn = new Int32Array(memory.buffer, location, 1)
+                  } else {
+                    throw new Error(`Pointer column size incorrect; expected 4, actual ${size}.`)
+                  }
+                  break
+
+                case 1073741833:
+                  if (size === 4) {
+                    persist = new Int32Array(memory.buffer, location, 1)
+                  } else {
+                    throw new Error(`Persist size incorrect; expected 4, actual ${size}.`)
+                  }
+                  break
+
+                case 1073741834:
+                  if (size === 4) {
+                    tickProgress = new Float32Array(memory.buffer, location, 1)
+                  } else {
+                    throw new Error(`Tick progress size incorrect; expected 4, actual ${size}.`)
+                  }
+                  break
+
+                case 1073741835:
+                  if (size === 4) {
+                    videoRows = new Int32Array(memory.buffer, location, 1)
+                  } else {
+                    throw new Error(`Video rows size incorrect; expected 4, actual ${size}.`)
+                  }
+                  break
+
+                case 1073741836:
+                  if (size === 4) {
+                    videoColumns = new Int32Array(memory.buffer, location, 1)
+                  } else {
+                    throw new Error(`Video columns size incorrect; expected 4, actual ${size}.`)
+                  }
+                  break
+
+                case 1073741838:
+                  if (size === 12) {
+                    listenerNormal = new Float32Array(memory.buffer, location, 3)
+                  } else {
+                    throw new Error(`Listener normal size incorrect; expected 12, actual ${size}.`)
+                  }
+                  break
+
+                case 1073741839:
+                  if (size % 4) {
+                    throw new Error(`Controller states size incorrect; expected multiple of 4, actual ${size}.`)
+                  } else {
+                    controllerStates = new Int32Array(memory.buffer, location, size / 4)
+                  }
+                  break
+
+                case 1073741840:
+                  if (size % 4) {
+                    throw new Error(`Controller Y axes size incorrect; expected multiple of 4, actual ${size}.`)
+                  } else {
+                    controllerYAxes = new Float32Array(memory.buffer, location, size / 4)
+                  }
+                  break
+
+                case 1073741841:
+                  if (size % 4) {
+                    throw new Error(`Controller X axes size incorrect; expected multiple of 4, actual ${size}.`)
+                  } else {
+                    controllerXAxes = new Float32Array(memory.buffer, location, size / 4)
+                  }
+                  break
+
+                case 1073741842:
+                  if (size === 4) {
+                    error = new Int32Array(memory.buffer, location, 1)
+                  } else {
+                    throw new Error(`Error size incorrect; expected 4, actual ${size}.`)
+                  }
+                  break
               }
             }
           }
+        }
 
-          // TODO: improve efficiency of state persistence in terms of storage space
-          const localStorageText = localStorage.getItem('INSERT-LOCAL-STORAGE-PREFIX-HERE-state')
+        if (videoColors !== null && maximumVideoRows === null) {
+          videoColors = null
+          console.warn('Unable to use video colors without maximum video rows.')
+        }
 
-          if (localStorageText !== null) {
-            const localStorageJson = JSON.parse(localStorageText)
+        if (maximumVideoRows !== null && videoColors === null) {
+          maximumVideoRows = null
+          console.warn('Unable to use maximum video rows without a video colors.')
+        }
 
-            for (const entry of localStorageJson) {
-              const buffer = state.get(entry.identifier)
+        if (videoColors !== null && videoColors.length % maximumVideoRows) {
+          throw new Error('Length of video colors not evenly divisible by the maximum number of video rows.')
+        }
 
-              if (buffer !== undefined && buffer.byteLength === entry.data.length) {
-                for (let i = 0; i < buffer.byteLength; i++) {
-                  buffer[i] = entry.data[i]
-                }
-              }
-            }
-          }
+        const maximumVideoColumns = videoColors.length / maximumVideoRows
 
-          let previousTimeStamp = null
-          let bankedSeconds = 0
+        if (safeAreaRows !== null && videoColors === null) {
+          safeAreaRows = null
+          console.warn('Unable to use safe area rows without video colors.')
+        }
 
-          let audioContext = null
-          let lastAudioBufferEndsAt = null
+        if (safeAreaRows === null) {
+          safeAreaRows = maximumVideoRows
+        } else if (safeAreaRows > maximumVideoRows) {
+          throw new Error('Safe area rows greater than video rows.')
+        }
 
-          const outputAudio = () => {
-            const audioBuffer = audioContext.createBuffer(2, audioBufferLengthSamplePairs, audioBufferSamplePairsPerSecond)
+        if (safeAreaColumns !== null && videoColors === null) {
+          safeAreaColumns = null
+          console.warn('Unable to use safe area columns without video colors.')
+        }
 
-            const nextEnd = lastAudioBufferEndsAt + secondsPerAudioBuffer
+        if (safeAreaColumns === null) {
+          safeAreaColumns = maximumVideoColumns
+        } else if (safeAreaColumns > maximumVideoColumns) {
+          throw new Error('Safe area columns greater than video columns.')
+        }
 
-            const left = audioBuffer.getChannelData(0)
-            const right = audioBuffer.getChannelData(1)
+        if (tickProgress !== null && ticksPerSecond === null) {
+          tickProgress = null
+          console.warn('Unable to use tick progress without ticks per second.')
+        }
 
-            for (let sampleIndex = 0; sampleIndex < audioBufferLengthSamplePairs; sampleIndex++) {
-              const readOffset = sampleIndex * 2
+        if (audioSamples !== null && ticksPerSecond === null) {
+          audioSamples = null
+          console.warn('Unable to use audio samples without ticks per second.')
+        }
 
-              left[sampleIndex] = audioBufferSamples[readOffset]
-              right[sampleIndex] = audioBufferSamples[readOffset + 1]
-            }
+        if (videoRows !== null && videoColors === null) {
+          videoRows = null
+          console.warn('Unable to use video rows without video colors.')
+        }
 
-            const audioBufferSourceNode = audioContext.createBufferSource()
-            audioBufferSourceNode.buffer = audioBuffer
-            audioBufferSourceNode.connect(audioContext.destination)
-            audioBufferSourceNode.start(lastAudioBufferEndsAt)
+        if (videoColumns !== null && videoColors === null) {
+          videoColumns = null
+          console.warn('Unable to use video columns without video colors.')
+        }
 
-            return nextEnd
-          }
+        if (tick !== null && ticksPerSecond === null) {
+          tick = null
+          console.warn('Unable to use tick without ticks per second.')
+        }
 
-          const render = () => {
-            canvasContext.putImageData(videoBufferImageData, 0, 0)
-          }
+        if (tickProgress !== null && tick === null) {
+          tickProgress = null
+          console.warn('Unable to use tick progress without tick.')
+        }
 
-          let previousWindowHeight = null
-          let previousWindowWidth = null
+        if (tickProgress !== null && video === null) {
+          tickProgress = null
+          console.warn('Unable to use tick progress without video.')
+        }
 
-          const shutdownTasks = []
+        if (audioSamples !== null && audio === null) {
+          audioSamples = null
+          console.warn('Unable to use audio samples without audio.')
+        }
 
-          const maximumSecondsToPlayBack = 0.2
+        if (audio !== null && audioSamples === null) {
+          audio = null
+          console.warn('Unable to use audio without audio samples.')
+        }
 
-          let animationFrame = null
-          const onAnimationFrame = (timeStamp) => {
-            try {
-              animationFrame = null
+        if (pointerRow !== null && pointerState === null) {
+          pointerRow = null
+          console.warn('Unable to use pointer row without pointer state.')
+        }
 
-              const windowHeight = window.innerHeight
-              const windowWidth = window.innerWidth
+        if (pointerRow !== null && videoColors === null) {
+          pointerRow = null
+          console.warn('Unable to use pointer row without video colors.')
+        }
 
-              if (windowHeight !== previousWindowHeight || windowWidth !== previousWindowWidth) {
-                const heightScale = windowHeight / (videoBufferRows - videoBufferTopSafeAreaInsetRows - videoBufferBottomSafeAreaInsetRows)
-                const widthScale = windowWidth / (videoBufferColumns - videoBufferLeftSafeAreaInsetColumns - videoBufferRightSafeAreaInsetColumns)
-                const scale = Math.min(heightScale, widthScale)
-                canvasElement.style.transform = `translate(-50%, -50%) scale(${scale}) translate(${(videoBufferRightSafeAreaInsetColumns - videoBufferLeftSafeAreaInsetColumns) / 2}px, ${(videoBufferBottomSafeAreaInsetRows - videoBufferTopSafeAreaInsetRows) / 2}px)`
+        if (pointerColumn !== null && pointerState === null) {
+          pointerColumn = null
+          console.warn('Unable to use pointer column without pointer state.')
+        }
 
-                previousWindowHeight = windowHeight
-                previousWindowWidth = windowWidth
-              }
+        if (pointerColumn !== null && videoColors === null) {
+          pointerColumn = null
+          console.warn('Unable to use pointer column without video colors.')
+        }
 
-              if (audioContext === null || audioContext.state !== 'running') {
-                bankedSeconds += Math.min(Math.max(0, (timeStamp - previousTimeStamp) / 1000), maximumSecondsToPlayBack)
+        if (listenerNormal !== null && audioSamples === null) {
+          listenerNormal = null
+          console.warn('Unable to use listener normal without audio samples.')
+        }
 
-                while (bankedSeconds >= secondsPerAudioBuffer) {
-                  performAdvance()
-                  render()
+        if (controllerYAxes !== null && controllerStates === null) {
+          controllerYAxes = null
+          console.warn('Unable to use controller Y axes without controller states.')
+        }
 
-                  bankedSeconds -= secondsPerAudioBuffer
-                }
-              } else {
-                const now = audioContext.currentTime
-                const target = previousTimeStamp === null ? now : now + Math.max(0, (timeStamp - previousTimeStamp) * 0.002) // TODO: maybe possible to eliminate
+        if (controllerYAxes !== null && controllerYAxes.length !== controllerStates.length) {
+          throw new Error(`Inconsistent number of controllers between states (${controllerStates.length}) and Y axes (${controllerYAxes.length}).`)
+        }
 
-                if (lastAudioBufferEndsAt === null) {
-                  lastAudioBufferEndsAt = now
-                } else {
-                  lastAudioBufferEndsAt = Math.max(lastAudioBufferEndsAt, target - maximumSecondsToPlayBack)
-                }
+        if (controllerXAxes !== null && controllerStates === null) {
+          controllerXAxes = null
+          console.warn('Unable to use controller X axes without controller states.')
+        }
 
-                let hasEmittedAtLeastOnce = false
-                while (lastAudioBufferEndsAt < target) {
-                  performAdvance()
-                  lastAudioBufferEndsAt = outputAudio()
-                  hasEmittedAtLeastOnce = true
-                }
-
-                // todo: pause on blur
-                // TODO: resume if suspended
-
-                if (hasEmittedAtLeastOnce) {
-                  render()
-                }
-              }
-
-              previousTimeStamp = timeStamp
-
-              animationFrame = requestAnimationFrame(onAnimationFrame)
-            } catch (reason) {
-              console.error(reason)
-              canvasElement.style.visibility = 'hidden'
-              setMessage('An error occurred while the game was running.  Please reload the page.  Report this problem alongside the name and version of your browser, operating system and device should it persist.')
-
-              while (shutdownTasks.length > 0) {
-                shutdownTasks.pop()()
-              }
-
-              try {
-                const errorMessage = getNullableUtf8EncodedString('error_message')
-
-                if (errorMessage !== null) {
-                  console.error(errorMessage)
-                }
-              } catch (e) {
-                console.error(e)
-              }
-            }
-          }
-
-          const createWebAudioContextIfMissing = () => {
-            if (audioContext === null && 'AudioContext' in window) {
-              audioContext = new AudioContext()
-
-              shutdownTasks.push(() => {
-                audioContext.close()
-                audioContext = null
-              })
-            }
-          }
-
-          const handleErrorsDuringEventHandler = (body) => (...args) => {
-            try {
-              body(...args)
-            } catch (reason) {
-              console.error(reason)
-              canvasElement.style.visibility = 'hidden'
-              setMessage('An error occurred while the game was running.  Please reload the page.  Report this problem alongside the name and version of your browser, operating system and device should it persist.')
-
-              while (shutdownTasks.length > 0) {
-                shutdownTasks.pop()()
-              }
-            }
-          }
-
-          const keypress = () => {
-            createWebAudioContextIfMissing()
-          }
-
-          try {
-            addEventListener('keypress', handleErrorsDuringEventHandler(keypress))
-
-            shutdownTasks.push(() => {
-              removeEventListener('keypress', handleErrorsDuringEventHandler(keypress))
-            })
-
-            const mousedown = () => {
-              createWebAudioContextIfMissing()
-            }
-
-            addEventListener('mousedown', handleErrorsDuringEventHandler(mousedown))
-
-            shutdownTasks.push(() => {
-              removeEventListener('mousedown', handleErrorsDuringEventHandler(mousedown))
-            })
-
-            const touchstart = () => {
-              createWebAudioContextIfMissing()
-            }
-
-            addEventListener('touchstart', handleErrorsDuringEventHandler(touchstart))
-
-            shutdownTasks.push(() => {
-              removeEventListener('touchstart', handleErrorsDuringEventHandler(touchstart))
-            })
-
-            performAdvance()
-            render()
-
-            shutdownTasks.push(() => {
-              if (animationFrame !== null) {
-                cancelAnimationFrame(animationFrame)
-                animationFrame = null
-              }
-            })
-
-            animationFrame = requestAnimationFrame(onAnimationFrame)
-
-            messageElement.style.visibility = 'hidden'
-            canvasElement.style.visibility = 'visible'
-          } catch (e) {
-            while (shutdownTasks.length > 0) {
-              shutdownTasks.pop()()
-            }
-
-            try {
-              const errorMessage = getNullableUtf8EncodedString('error_message')
-
-              if (errorMessage !== null) {
-                console.error(errorMessage)
-              }
-            } catch (e) {
-              console.error(e)
-            }
-
-            throw e
-          }
-        } catch (e) {
-          try {
-            const errorMessage = getNullableUtf8EncodedString('error_message')
-
-            if (errorMessage !== null) {
-              console.error(errorMessage)
-            }
-          } catch (e) {
-            console.error(e)
-          }
-
-          throw e
+        if (controllerXAxes !== null && controllerXAxes.length !== controllerStates.length) {
+          throw new Error(`Inconsistent number of controllers between states (${controllerStates.length}) and X axes (${controllerXAxes.length}).`)
         }
       } catch (reason) {
         console.error(reason)

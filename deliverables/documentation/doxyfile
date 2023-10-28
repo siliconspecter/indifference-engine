@@ -257,7 +257,8 @@ EXPAND_ONLY_PREDEF     = NO
 SEARCH_INCLUDES        = YES
 INCLUDE_PATH           =
 INCLUDE_FILE_PATTERNS  =
-PREDEFINED             = __attribute__(x)=
+PREDEFINED             = __attribute__(x)= \
+                         DOXYGEN_IGNORE
 EXPAND_AS_DEFINED      =
 SKIP_FUNCTION_MACROS   = YES
 TAGFILES               =

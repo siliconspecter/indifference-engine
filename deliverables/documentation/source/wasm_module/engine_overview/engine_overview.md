@@ -169,6 +169,18 @@ TODO
 
 TODO
 
+Navigation meshes are a core feature of Indifference Engine.  Much like in other
+engines, they are surfaces covering the ground indicating where AI is able to
+navigate:
+
+TODO: image
+
+Unlike in other engines, however, they also define where _players_ can go.  You
+can almost imagine that any edges without a neighboring face have an invisible
+wall extending upwards into infinity:
+
+TODO: image
+
 ##### Structure
 
 TODO
@@ -237,7 +249,10 @@ TODO
 
 #### Blender plug-in
 
-TODO
+Although Blender, like most 3D editors, can natively import from and export to
+OBJ format, a [plugin](./blender_obj_plugin.md) has been written to help resolve
+minor discontinuities between how Blender and Indifference Engine use the
+format.
 
 ### *.wav files
 

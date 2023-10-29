@@ -10,3 +10,12 @@ jobs:
 
       - run: make production --jobs
         working-directory: deliverables/wasm_module
+
+      - run: npm install
+        working-directory: deliverables/hosting_runtimes/web
+
+      - run: npm run-script lint
+        working-directory: deliverables/hosting_runtimes/web
+
+      - run: npm run-script build
+        working-directory: deliverables/hosting_runtimes/web

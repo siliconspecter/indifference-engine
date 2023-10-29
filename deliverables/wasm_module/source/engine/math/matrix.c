@@ -25,7 +25,9 @@ culled_by model_to_clip(
   }
   else
   {
-    const f32 z = (model_view_projection[2][0] * model_x + model_view_projection[2][1] * model_y + model_view_projection[2][2] * model_z + model_view_projection[2][3]) / w;
+    const f32 w_reciprocal = 1.0f / w;
+
+    const f32 z = (model_view_projection[2][0] * model_x + model_view_projection[2][1] * model_y + model_view_projection[2][2] * model_z + model_view_projection[2][3]) * w_reciprocal;
 
     if (z < -1.0f)
     {
@@ -37,9 +39,10 @@ culled_by model_to_clip(
     }
     else
     {
-      clip[0] = (model_view_projection[0][0] * model_x + model_view_projection[0][1] * model_y + model_view_projection[0][2] * model_z + model_view_projection[0][3]) / w;
-      clip[1] = (model_view_projection[1][0] * model_x + model_view_projection[1][1] * model_y + model_view_projection[1][2] * model_z + model_view_projection[1][3]) / w;
+      clip[0] = (model_view_projection[0][0] * model_x + model_view_projection[0][1] * model_y + model_view_projection[0][2] * model_z + model_view_projection[0][3]) * w_reciprocal;
+      clip[1] = (model_view_projection[1][0] * model_x + model_view_projection[1][1] * model_y + model_view_projection[1][2] * model_z + model_view_projection[1][3]) * w_reciprocal;
       clip[2] = z;
+
       return CULLED_BY_NOTHING;
     }
   }
@@ -62,9 +65,12 @@ culled_by clip_to_world(
   }
   else
   {
-    world[0] = (inverse_model_view[0][0] * clip_x + inverse_model_view[0][1] * clip_y + inverse_model_view[0][2] * clip_z + inverse_model_view[0][3]) / w;
-    world[1] = (inverse_model_view[1][0] * clip_x + inverse_model_view[1][1] * clip_y + inverse_model_view[1][2] * clip_z + inverse_model_view[1][3]) / w;
-    world[2] = (inverse_model_view[2][0] * clip_x + inverse_model_view[2][1] * clip_y + inverse_model_view[2][2] * clip_z + inverse_model_view[2][3]) / w;
+    const f32 w_reciprocal = 1.0f / w;
+
+    world[0] = (inverse_model_view[0][0] * clip_x + inverse_model_view[0][1] * clip_y + inverse_model_view[0][2] * clip_z + inverse_model_view[0][3]) * w_reciprocal;
+    world[1] = (inverse_model_view[1][0] * clip_x + inverse_model_view[1][1] * clip_y + inverse_model_view[1][2] * clip_z + inverse_model_view[1][3]) * w_reciprocal;
+    world[2] = (inverse_model_view[2][0] * clip_x + inverse_model_view[2][1] * clip_y + inverse_model_view[2][2] * clip_z + inverse_model_view[2][3]) * w_reciprocal;
+
     return CULLED_BY_NOTHING;
   }
 }
@@ -157,7 +163,7 @@ void perspective(
   forward[0][2] = shift_x * double_greatest_dimension * width_reciprocal;
   forward[0][3] = 0;
   forward[1][0] = 0;
-  forward[1][2] = height_reciprocal * half_b_reciprocal;
+  forward[1][1] = height_reciprocal * half_b_reciprocal;
   forward[1][2] = shift_y * double_greatest_dimension * height_reciprocal;
   forward[1][3] = 0;
   forward[2][0] = 0;

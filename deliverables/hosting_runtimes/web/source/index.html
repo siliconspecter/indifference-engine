@@ -520,6 +520,35 @@
           throw new Error('Games without tick are currently unsupported.')
         }
 
+        const secondsPerTick = ticksPerSecond === null ? null : 1 / ticksPerSecond
+        let previousAudioBufferEndsAt = null
+
+        const audioContext = audioSamples && 'AudioContext' in window ? new AudioContext() : null
+        let previousAudioContextTime = null
+        let averageAudioContextTimeDelta = null
+
+        const resumeAudioContext = () => {
+          if (audioContext !== null) {
+            const audioContextState = audioContext.state
+
+            switch (audioContextState) {
+              case 'suspended':
+              case 'interrupted':
+                previousAudioContextTime = null
+                averageAudioContextTimeDelta = null
+                previousAudioBufferEndsAt = null
+                audioContext.resume()
+                break
+
+              case 'running':
+                break
+
+              default:
+                throw new Error(`Unimplemented AudioContext state "${state}".`)
+            }
+          }
+        }
+
         let previousScale = null
 
         let videoColorsImageData = null
@@ -559,6 +588,8 @@
             if (pointerColumn !== null) {
               pointerColumn[0] = e.offsetX
             }
+
+            resumeAudioContext()
           })
 
           canvasElement.addEventListener('mouseup', () => {
@@ -602,23 +633,81 @@
               videoColumns[0] = nextVideoColumns
             }
 
-            // TODO: Update pointer state
+            let timedByAudioContext = false
 
-            if (previousTimestamp !== null && tickProgress !== null) {
-              // TODO: Skip most of this if the audio system is running
-              const deltaTicks = Math.min(Math.max(100, 1000 / ticksPerSecond), Math.max(0, timestamp - previousTimestamp)) / (1000 / ticksPerSecond)
+            if (audioContext !== null) {
+              const audioContextState = audioContext.state
+
+              switch (audioContextState) {
+                case 'suspended':
+                case 'interrupted':
+                  previousAudioContextTime = null
+                  averageAudioContextTimeDelta = null
+                  previousAudioBufferEndsAt = null
+                  audioContext.resume()
+                  break
+
+                case 'running': {
+                  const nextAudioContextTime = audioContext.currentTime
+
+                  if (previousAudioContextTime !== null) {
+                    const audioContextTimeDelta = nextAudioContextTime - previousAudioContextTime
+                    averageAudioContextTimeDelta = averageAudioContextTimeDelta === null ? audioContextTimeDelta : averageAudioContextTimeDelta * 0.9 + audioContextTimeDelta * 0.1
+
+                    const expectedNextAudioContextTime = nextAudioContextTime + averageAudioContextTimeDelta
+
+                    if (previousAudioBufferEndsAt === null) {
+                      // TODO: render one audio buffer starting now, initialize variables/etc. from the end of it
+                      previousAudioBufferEndsAt = expectedNextAudioContextTime + secondsPerTick
+                    }
+
+                    const numberOfTicksElapsed = Math.ceil((expectedNextAudioContextTime - previousAudioBufferEndsAt) * ticksPerSecond)
+                    const nextAudioBufferEndsAt = previousAudioBufferEndsAt + numberOfTicksElapsed * secondsPerTick
+                    const numberOfTicksToExecute = Math.min(5, numberOfTicksElapsed)
+
+                    if (numberOfTicksToExecute > 0) {
+                      previousAudioBufferEndsAt = nextAudioBufferEndsAt - numberOfTicksToExecute * secondsPerTick
+                      for (let iteration = 0; iteration < numberOfTicksToExecute; iteration++) {
+                        tick()
+
+                        // TODO: output audio
+                        previousAudioBufferEndsAt += secondsPerTick
+                      }
+
+                      tickProgress[0] = 0
+                    }
+
+                    const nextTickProgress = Math.min(1, Math.max(0, 1 - ((previousAudioBufferEndsAt - expectedNextAudioContextTime) * ticksPerSecond)))
+
+                    tickProgress[0] = Math.max(nextTickProgress, tickProgress[0])
+                  }
+
+                  previousAudioContextTime = nextAudioContextTime
+                  timedByAudioContext = true
+                  break
+                }
+
+                default:
+                  throw new Error(`Unimplemented AudioContext state "${state}".`)
+              }
+            }
+
+            if (!timedByAudioContext && previousTimestamp !== null && tickProgress !== null) {
+              const deltaTicks = Math.min(Math.max(100, 1000 / ticksPerSecond), Math.max(0, timestamp - previousTimestamp)) * (ticksPerSecond / 1000)
 
               tickProgress[0] += deltaTicks
 
               while (tickProgress[0] >= 1) {
                 tick()
+                console.log('tick!')
                 tickProgress[0]--
               }
-
-              previousTimestamp = timestamp
             }
 
-            // TODO: Execute render callback
+            previousTimestamp = timestamp
+
+            video()
+            canvasContext.putImageData(videoColorsImageData, 0, 0)
 
             if (!canvasVisible) {
               canvasElement.style.visibility = 'visible'
@@ -637,7 +726,9 @@
               canvasElement.style.visibility = 'hidden'
             }
 
-            // TODO: Stop audio context
+            if (audioContext !== null) {
+              audioContext.close()
+            }
           }
         }
 

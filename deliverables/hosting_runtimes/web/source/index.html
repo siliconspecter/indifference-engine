@@ -527,6 +527,45 @@
         let previousAudioContextTime = null
         let averageAudioContextTimeDelta = null
 
+        const performTick = () => {
+          // TODO: Read controllers
+
+          if (error !== null) {
+            error[0] = 0
+          }
+
+          if (persist !== null) {
+            persist[0] = 0
+          }
+
+          tick()
+
+          if (error !== null) {
+            const errorReason = error[0]
+
+            if (errorReason !== 0) {
+              error[0] = 0
+              throw new Error(`The WASM module reported error number "${error}".`)
+            }
+          }
+
+          if (persist !== null) {
+            const persistState = persist[0]
+
+            switch (persistState) {
+              case 0:
+                break
+
+              case 1:
+                // TODO
+                break
+
+              default:
+                throw new Error(`Unsupported persist value "${persistState}".`)
+            }
+          }
+        }
+
         const resumeAudioContext = () => {
           if (audioContext !== null) {
             const audioContextState = audioContext.state
@@ -668,7 +707,7 @@
                     if (numberOfTicksToExecute > 0) {
                       previousAudioBufferEndsAt = nextAudioBufferEndsAt - numberOfTicksToExecute * secondsPerTick
                       for (let iteration = 0; iteration < numberOfTicksToExecute; iteration++) {
-                        tick()
+                        performTick()
 
                         // TODO: output audio
                         previousAudioBufferEndsAt += secondsPerTick
@@ -698,7 +737,7 @@
               tickProgress[0] += deltaTicks
 
               while (tickProgress[0] >= 1) {
-                tick()
+                performTick()
                 tickProgress[0]--
               }
             }
@@ -718,6 +757,14 @@
           } catch (reason) {
             console.error(reason)
 
+            if (error !== null) {
+              const errorReason = error[0]
+
+              if (errorReason !== 0) {
+                console.error(`The WASM module reported error number "${errorReason}".`)
+              }
+            }
+
             messageElement.textContent = 'Failed to run the game.  Please ensure reload the page.  Report this problem alongside the name and version of your browser, operating system and device should it persist.'
 
             if (canvasVisible) {
@@ -732,16 +779,13 @@
         }
 
         requestAnimationFrame(nextAnimationFrame)
-
-        // TODO: create canvas, requestAnimationFrame
-        // TODO: tick may end up here
       } catch (reason) {
         console.error(reason)
         messageElement.textContent = 'Failed to load the game.  Please ensure that you have a stable internet connection and reload the page.  Report this problem alongside the name and version of your browser, operating system and device should it persist.'
       }
     }
 
-    if (false && ('serviceWorker' in navigator)) {
+    if (('serviceWorker' in navigator)) {
       messageElement.textContent = 'Registering service worker...'
 
       navigator.serviceWorker

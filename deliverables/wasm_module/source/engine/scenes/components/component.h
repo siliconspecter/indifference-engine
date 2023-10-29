@@ -9,12 +9,15 @@
 
 /**
  * A callback which is called when a component is destroyed.
+ * @remark This can happen only during a script or the tick event handler.
  * @param meta The arbitrary index of the component which was destroyed.
  */
 typedef void(component_destroyed)(index meta);
 
 /**
  * Creates a new component as a direct child of an entity.
+ * @remark Call only during scripts or the tick event handler (doing so in other
+ *         situations may produce unexpected results).
  * @remark Will throw a trap should there be no components left to allocate.
  * @remark Will throw a trap should the specified entity not exist at the time
  *         of calling.
@@ -31,6 +34,8 @@ index component(
 
 /**
  * Creates a new component as a direct child of another component.
+ * @remark Call only during scripts or the tick event handler (doing so in other
+ *         situations may produce unexpected results).
  * @remark Will throw a trap should there be no components left to allocate.
  * @remark Will throw a trap should the specified component not exist at the
  *         time of calling.
@@ -47,6 +52,8 @@ index sub_component(
 
 /**
  * Destroys a previously created component and all sub-components within it.
+ * @remark Call only during scripts or the tick event handler (doing so in other
+ *         situations may produce unexpected results).
  * @remark Will throw a trap should the specified component not exist at the
  *         time of calling.
  * @remark The component's index and the indices of all components within it will

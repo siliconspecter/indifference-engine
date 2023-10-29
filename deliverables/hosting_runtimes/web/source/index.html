@@ -574,7 +574,7 @@
             const nextVideoRows = Math.min(maximumVideoRows, Math.max(safeAreaRows, Math.floor(Math.min(maximumVideoRows, windowRows / nextScale))))
             const nextVideoColumns = Math.min(maximumVideoColumns, Math.max(safeAreaColumns, Math.floor(Math.min(maximumVideoColumns, windowColumns / nextScale))))
 
-            if (nextVideoRows !== videoRows[0] || nextVideoColumns !== videoColumns[0]) {
+            if (nextVideoRows !== videoRows[0] || nextVideoColumns !== videoColumns[0] || !canvasVisible) {
               canvasElement.height = nextVideoRows
               canvasElement.width = nextVideoColumns
 

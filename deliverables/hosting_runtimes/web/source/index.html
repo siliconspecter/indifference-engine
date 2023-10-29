@@ -677,7 +677,7 @@
               canvasElement.height = nextVideoRows
               canvasElement.width = nextVideoColumns
 
-              videoColorsImageData = new ImageData(new Uint8ClampedArray(videoColors.buffer, 0, nextVideoRows * nextVideoColumns * 4), nextVideoColumns, nextVideoRows)
+              videoColorsImageData = new ImageData(new Uint8ClampedArray(videoColors.buffer, videoColors.byteOffset, nextVideoRows * nextVideoColumns * 4), nextVideoColumns, nextVideoRows)
 
               videoRows[0] = nextVideoRows
               videoColumns[0] = nextVideoColumns
@@ -714,6 +714,7 @@
                     const numberOfTicksElapsed = Math.ceil((expectedNextAudioContextTime - previousAudioBufferEndsAt) * ticksPerSecond)
                     const nextAudioBufferEndsAt = previousAudioBufferEndsAt + numberOfTicksElapsed * secondsPerTick
                     const numberOfTicksToExecute = Math.min(5, numberOfTicksElapsed)
+                    // TODO: This seems to take a few seconds to catch up if you tab away and back in Firefox
 
                     if (numberOfTicksToExecute > 0) {
                       previousAudioBufferEndsAt = nextAudioBufferEndsAt - numberOfTicksToExecute * secondsPerTick

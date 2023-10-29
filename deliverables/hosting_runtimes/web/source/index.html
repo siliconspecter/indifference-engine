@@ -190,190 +190,190 @@
         for (let i = 0; i < stateBuffers; i++) {
           const identifier = stateBufferIdentifiers[i]
 
-            const size = stateBufferSizes[i]
-            const location = stateBufferLocations[i]
+          const size = stateBufferSizes[i]
+          const location = stateBufferLocations[i]
 
-            if (size === 0) {
-              throw new Error(`Buffer "${identifier}" has a size of 0.`)
-            } else if (location + size > memory.buffer.byteLength) {
-              throw new Error(`Buffer "${identifier}" overlaps the end of memory.`)
-            } else if (identifier >= 0 && identifier <= 1073741823) {
-              const state = new Uint8Array(memory.buffer, location, size)
+          if (size === 0) {
+            throw new Error(`Buffer "${identifier}" has a size of 0.`)
+          } else if (location + size > memory.buffer.byteLength) {
+            throw new Error(`Buffer "${identifier}" overlaps the end of memory.`)
+          } else if (identifier >= 0 && identifier <= 1073741823) {
+            const state = new Uint8Array(memory.buffer, location, size)
 
-              state.set(identifier, state)
+            state.set(identifier, state)
 
-              if (localStorageJson !== null && Object.prototype.hasOwnProperty.call(localStorageJson, identifier)) {
-                const persisted = atob(localStorageJson[identifier])
+            if (localStorageJson !== null && Object.prototype.hasOwnProperty.call(localStorageJson, identifier)) {
+              const persisted = atob(localStorageJson[identifier])
 
-                if (persisted.length === state.length) {
-                  for (let index = 0; index < persisted.length; index++) {
-                    state[index] = persisted.codePointAt(index)
-                  }
+              if (persisted.length === state.length) {
+                for (let index = 0; index < persisted.length; index++) {
+                  state[index] = persisted.codePointAt(index)
                 }
               }
-            } else if (identifier >= -1073741824 && identifier <= -1) {
-              throw new Error(`Buffer "${identifier}" is required by the WASM module but is not supported by this hosting runtime.`)
-            } else {
-              switch (identifier) {
-                case 1073741824:
-                  if (size === 4) {
-                    ticksPerSecond = new Int32Array(memory.buffer, location, 1)[0]
+            }
+          } else if (identifier >= -1073741824 && identifier <= -1) {
+            throw new Error(`Buffer "${identifier}" is required by the WASM module but is not supported by this hosting runtime.`)
+          } else {
+            switch (identifier) {
+              case 1073741824:
+                if (size === 4) {
+                  ticksPerSecond = new Int32Array(memory.buffer, location, 1)[0]
 
-                    if (ticksPerSecond < 1) {
-                      throw new Error(`Ticks per second incorrect; expected at least 1, actual ${ticksPerSecond}.`)
-                    }
-                  } else {
-                    throw new Error(`Ticks per second size incorrect; expected 4, actual ${size}.`)
+                  if (ticksPerSecond < 1) {
+                    throw new Error(`Ticks per second incorrect; expected at least 1, actual ${ticksPerSecond}.`)
                   }
-                  break
+                } else {
+                  throw new Error(`Ticks per second size incorrect; expected 4, actual ${size}.`)
+                }
+                break
 
-                case 1073741825:
-                  if (size % 4 === 0) {
-                    audioSamples = new Float32Array(memory.buffer, location, size / 4)
-                  } else {
-                    throw new Error(`Audio samples size incorrect; expected multiple of 4, actual ${size}.`)
+              case 1073741825:
+                if (size % 4 === 0) {
+                  audioSamples = new Float32Array(memory.buffer, location, size / 4)
+                } else {
+                  throw new Error(`Audio samples size incorrect; expected multiple of 4, actual ${size}.`)
+                }
+                break
+
+              case 1073741826:
+                if (size === 4) {
+                  maximumVideoRows = new Int32Array(memory.buffer, location, 1)[0]
+
+                  if (maximumVideoRows < 1) {
+                    throw new Error(`Maximum video rows incorrect; expected at least 1, actual ${maximumVideoRows}.`)
                   }
-                  break
+                } else {
+                  throw new Error(`Maximum video rows size incorrect; expected 4, actual ${size}.`)
+                }
+                break
 
-                case 1073741826:
-                  if (size === 4) {
-                    maximumVideoRows = new Int32Array(memory.buffer, location, 1)[0]
+              case 1073741827:
+                if (size === 4) {
+                  safeAreaRows = new Int32Array(memory.buffer, location, 1)[0]
 
-                    if (maximumVideoRows < 1) {
-                      throw new Error(`Maximum video rows incorrect; expected at least 1, actual ${maximumVideoRows}.`)
-                    }
-                  } else {
-                    throw new Error(`Maximum video rows size incorrect; expected 4, actual ${size}.`)
+                  if (safeAreaRows < 1) {
+                    throw new Error(`Safe area rows incorrect; expected at least 1, actual ${safeAreaRows}.`)
                   }
-                  break
+                } else {
+                  throw new Error(`Safe area rows size incorrect; expected 4, actual ${size}.`)
+                }
+                break
 
-                case 1073741827:
-                  if (size === 4) {
-                    safeAreaRows = new Int32Array(memory.buffer, location, 1)[0]
+              case 1073741828:
+                if (size === 4) {
+                  safeAreaColumns = new Int32Array(memory.buffer, location, 1)[0]
 
-                    if (safeAreaRows < 1) {
-                      throw new Error(`Safe area rows incorrect; expected at least 1, actual ${safeAreaRows}.`)
-                    }
-                  } else {
-                    throw new Error(`Safe area rows size incorrect; expected 4, actual ${size}.`)
+                  if (safeAreaColumns < 1) {
+                    throw new Error(`Safe area columns incorrect; expected at least 1, actual ${safeAreaRows}.`)
                   }
-                  break
+                } else {
+                  throw new Error(`Safe area columns size incorrect; expected 4, actual ${size}.`)
+                }
+                break
 
-                case 1073741828:
-                  if (size === 4) {
-                    safeAreaColumns = new Int32Array(memory.buffer, location, 1)[0]
+              case 1073741829:
+                if (size % 4) {
+                  throw new Error(`Video colors size incorrect; expected multiple of 4, actual ${size}.`)
+                } else {
+                  videoColors = new Uint8ClampedArray(memory.buffer, location, size)
+                }
+                break
 
-                    if (safeAreaColumns < 1) {
-                      throw new Error(`Safe area columns incorrect; expected at least 1, actual ${safeAreaRows}.`)
-                    }
-                  } else {
-                    throw new Error(`Safe area columns size incorrect; expected 4, actual ${size}.`)
-                  }
-                  break
+              case 1073741830:
+                if (size === 4) {
+                  pointerState = new Int32Array(memory.buffer, location, 1)
+                } else {
+                  throw new Error(`Pointer state size incorrect; expected 4, actual ${size}.`)
+                }
+                break
 
-                case 1073741829:
-                  if (size % 4) {
-                    throw new Error(`Video colors size incorrect; expected multiple of 4, actual ${size}.`)
-                  } else {
-                    videoColors = new Uint8ClampedArray(memory.buffer, location, size)
-                  }
-                  break
+              case 1073741831:
+                if (size === 4) {
+                  pointerRow = new Int32Array(memory.buffer, location, 1)
+                } else {
+                  throw new Error(`Pointer row size incorrect; expected 4, actual ${size}.`)
+                }
+                break
 
-                case 1073741830:
-                  if (size === 4) {
-                    pointerState = new Int32Array(memory.buffer, location, 1)
-                  } else {
-                    throw new Error(`Pointer state size incorrect; expected 4, actual ${size}.`)
-                  }
-                  break
+              case 1073741832:
+                if (size === 4) {
+                  pointerColumn = new Int32Array(memory.buffer, location, 1)
+                } else {
+                  throw new Error(`Pointer column size incorrect; expected 4, actual ${size}.`)
+                }
+                break
 
-                case 1073741831:
-                  if (size === 4) {
-                    pointerRow = new Int32Array(memory.buffer, location, 1)
-                  } else {
-                    throw new Error(`Pointer row size incorrect; expected 4, actual ${size}.`)
-                  }
-                  break
+              case 1073741833:
+                if (size === 4) {
+                  persist = new Int32Array(memory.buffer, location, 1)
+                } else {
+                  throw new Error(`Persist size incorrect; expected 4, actual ${size}.`)
+                }
+                break
 
-                case 1073741832:
-                  if (size === 4) {
-                    pointerColumn = new Int32Array(memory.buffer, location, 1)
-                  } else {
-                    throw new Error(`Pointer column size incorrect; expected 4, actual ${size}.`)
-                  }
-                  break
+              case 1073741834:
+                if (size === 4) {
+                  tickProgress = new Float32Array(memory.buffer, location, 1)
+                } else {
+                  throw new Error(`Tick progress size incorrect; expected 4, actual ${size}.`)
+                }
+                break
 
-                case 1073741833:
-                  if (size === 4) {
-                    persist = new Int32Array(memory.buffer, location, 1)
-                  } else {
-                    throw new Error(`Persist size incorrect; expected 4, actual ${size}.`)
-                  }
-                  break
+              case 1073741835:
+                if (size === 4) {
+                  videoRows = new Int32Array(memory.buffer, location, 1)
+                } else {
+                  throw new Error(`Video rows size incorrect; expected 4, actual ${size}.`)
+                }
+                break
 
-                case 1073741834:
-                  if (size === 4) {
-                    tickProgress = new Float32Array(memory.buffer, location, 1)
-                  } else {
-                    throw new Error(`Tick progress size incorrect; expected 4, actual ${size}.`)
-                  }
-                  break
+              case 1073741836:
+                if (size === 4) {
+                  videoColumns = new Int32Array(memory.buffer, location, 1)
+                } else {
+                  throw new Error(`Video columns size incorrect; expected 4, actual ${size}.`)
+                }
+                break
 
-                case 1073741835:
-                  if (size === 4) {
-                    videoRows = new Int32Array(memory.buffer, location, 1)
-                  } else {
-                    throw new Error(`Video rows size incorrect; expected 4, actual ${size}.`)
-                  }
-                  break
+              case 1073741838:
+                if (size === 12) {
+                  listenerNormal = new Float32Array(memory.buffer, location, 3)
+                } else {
+                  throw new Error(`Listener normal size incorrect; expected 12, actual ${size}.`)
+                }
+                break
 
-                case 1073741836:
-                  if (size === 4) {
-                    videoColumns = new Int32Array(memory.buffer, location, 1)
-                  } else {
-                    throw new Error(`Video columns size incorrect; expected 4, actual ${size}.`)
-                  }
-                  break
+              case 1073741839:
+                if (size % 4) {
+                  throw new Error(`Controller states size incorrect; expected multiple of 4, actual ${size}.`)
+                } else {
+                  controllerStates = new Int32Array(memory.buffer, location, size / 4)
+                }
+                break
 
-                case 1073741838:
-                  if (size === 12) {
-                    listenerNormal = new Float32Array(memory.buffer, location, 3)
-                  } else {
-                    throw new Error(`Listener normal size incorrect; expected 12, actual ${size}.`)
-                  }
-                  break
+              case 1073741840:
+                if (size % 4) {
+                  throw new Error(`Controller Y axes size incorrect; expected multiple of 4, actual ${size}.`)
+                } else {
+                  controllerYAxes = new Float32Array(memory.buffer, location, size / 4)
+                }
+                break
 
-                case 1073741839:
-                  if (size % 4) {
-                    throw new Error(`Controller states size incorrect; expected multiple of 4, actual ${size}.`)
-                  } else {
-                    controllerStates = new Int32Array(memory.buffer, location, size / 4)
-                  }
-                  break
+              case 1073741841:
+                if (size % 4) {
+                  throw new Error(`Controller X axes size incorrect; expected multiple of 4, actual ${size}.`)
+                } else {
+                  controllerXAxes = new Float32Array(memory.buffer, location, size / 4)
+                }
+                break
 
-                case 1073741840:
-                  if (size % 4) {
-                    throw new Error(`Controller Y axes size incorrect; expected multiple of 4, actual ${size}.`)
-                  } else {
-                    controllerYAxes = new Float32Array(memory.buffer, location, size / 4)
-                  }
-                  break
-
-                case 1073741841:
-                  if (size % 4) {
-                    throw new Error(`Controller X axes size incorrect; expected multiple of 4, actual ${size}.`)
-                  } else {
-                    controllerXAxes = new Float32Array(memory.buffer, location, size / 4)
-                  }
-                  break
-
-                case 1073741842:
-                  if (size === 4) {
-                    error = new Int32Array(memory.buffer, location, 1)
-                  } else {
-                    throw new Error(`Error size incorrect; expected 4, actual ${size}.`)
-                  }
-                  break
+              case 1073741842:
+                if (size === 4) {
+                  error = new Int32Array(memory.buffer, location, 1)
+                } else {
+                  throw new Error(`Error size incorrect; expected 4, actual ${size}.`)
+                }
+                break
             }
           }
 
@@ -797,7 +797,7 @@
       }
     }
 
-    if (('serviceWorker' in navigator)) {
+    if ('serviceWorker' in navigator) {
       messageElement.textContent = 'Registering service worker...'
 
       navigator.serviceWorker

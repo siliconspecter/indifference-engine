@@ -190,9 +190,6 @@
         for (let i = 0; i < stateBuffers; i++) {
           const identifier = stateBufferIdentifiers[i]
 
-          if (state.has(identifier)) {
-            throw new Error(`Buffer identifier "${identifier}" appears more than once.`)
-          } else {
             const size = stateBufferSizes[i]
             const location = stateBufferLocations[i]
 
@@ -377,6 +374,20 @@
                     throw new Error(`Error size incorrect; expected 4, actual ${size}.`)
                   }
                   break
+            }
+          }
+
+          for (let j = 0; j < i; j++) {
+            const otherIdentifier = stateBufferIdentifiers[j]
+
+            if (otherIdentifier === identifier) {
+              throw new Error(`Buffer identifier "${identifier}" is present more than once.`)
+            } else {
+              const otherSize = stateBufferSizes[j]
+              const otherLocation = stateBufferLocations[j]
+
+              if ((otherLocation >= location && otherLocation < location + size) || (location >= otherLocation && location < otherLocation + otherSize)) {
+                throw new Error(`Buffers with identifiers "${identifier}" and "${otherIdentifier}" overlap.`)
               }
             }
           }

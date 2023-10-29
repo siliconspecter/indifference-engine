@@ -11,10 +11,10 @@
 #include "controllers.h"
 #include "../../miscellaneous.h"
 
-const s32 ticks_per_second = TICKS_PER_SECOND;
-const s32 maximum_video_rows = MAXIMUM_VIDEO_ROWS;
-const s32 safe_area_rows = SAFE_AREA_ROWS;
-const s32 safe_area_columns = SAFE_AREA_COLUMNS;
+const s32 ticks_per_second ALIGN(s32) = TICKS_PER_SECOND;
+const s32 maximum_video_rows ALIGN(s32) = MAXIMUM_VIDEO_ROWS;
+const s32 safe_area_rows ALIGN(s32) = SAFE_AREA_ROWS;
+const s32 safe_area_columns ALIGN(s32) = SAFE_AREA_COLUMNS;
 
 #define BUFFER_LIST(item)                                                                                 \
   item(1073741824, ticks_per_second)                                                                      \

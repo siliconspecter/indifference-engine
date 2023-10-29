@@ -50,9 +50,9 @@ typedef void(sound_component_ended)(index meta);
  *               its end.  Should the sound loop, each time the end is reached.
  *               @ref NULL is acceptable.
  * @param sound The sound to play.
- * @return The index of the created sound component.
+ * @return A handle to the created sound component.
  */
-index sound_component(
+component_handle sound_component(
     const index entity,
     const index meta,
     const sound_component_replaced *const on_tick,
@@ -70,7 +70,7 @@ index sound_component(
  *         time of calling.
  * @remark This defaults to playing at unity gain (1.0).
  * @remark This defaults to playing at unity speed (1.0).
- * @param component The index of the component to which to add a component.
+ * @param component A handle to the component to which to add a component.
  * @param meta An arbitrary index which can be used to look up use-case-specific
  *            data.
  * @param on_replacement Called when the sound component is replaced by a newly
@@ -80,10 +80,10 @@ index sound_component(
  *               its end.  Should the sound loop, each time the end is reached.
  *               @ref NULL is acceptable.
  * @param sound The sound to play.
- * @return The index of the created sound component.
+ * @return A handle to the created sound component.
  */
-index sound_sub_component(
-    const index component,
+component_handle sound_sub_component(
+    const component_handle component,
     const index meta,
     const sound_component_replaced *const on_tick,
     const sound_component_ended *const on_expiry,
@@ -94,6 +94,8 @@ index sound_sub_component(
  * gain.
  * @remark Modify only during scripts or the tick event handler (doing so in
  *         other situations may produce unexpected results).
+ * @remark Use @ref COMPONENT_HANDLE_META to extract the index to use here from
+ *         a handle to a sound component.
  */
 extern f32 sound_component_gains[MAXIMUM_SOUND_COMPONENTS];
 
@@ -102,6 +104,8 @@ extern f32 sound_component_gains[MAXIMUM_SOUND_COMPONENTS];
  * 2.0 is twice as fast.  Affects both tempo and pitch.
  * @remark Modify only during scripts or the tick event handler (doing so in
  *         other situations may produce unexpected results).
+ * @remark Use @ref COMPONENT_HANDLE_META to extract the index to use here from
+ *         a handle to a sound component.
  */
 extern f32 sound_component_speeds[MAXIMUM_SOUND_COMPONENTS];
 

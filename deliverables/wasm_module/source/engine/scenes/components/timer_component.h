@@ -46,7 +46,7 @@ typedef void(timer_component_expired)(index meta);
  *                  @ref NULL is acceptable.
  * @param ticks The duration of the timer component, in ticks.  Must be at least
  *              1.
- * @return The index of the created timer component.
+ * @return A handle to the created timer component.
  */
 index timer_component(
     const index entity,
@@ -62,8 +62,7 @@ index timer_component(
  * @remark Will throw a trap should there be no components left to allocate.
  * @remark Will throw a trap should the specified component not exist at the
  *         time of calling.
- * @param component The index of the component to which to add a timer
- *                  component.
+ * @param component A handle to the component to which to add a timer component.
  * @param meta An arbitrary index which can be used to look up use-case-specific
  *            data.
  * @param on_tick Called once per tick while the timer component elapses,
@@ -76,10 +75,10 @@ index timer_component(
  *                  @ref NULL is acceptable.
  * @param ticks The duration of the timer component, in ticks.  Must be at least
  *              1.
- * @return The index of the created timer component.
+ * @return A handle to the created timer component.
  */
-index timer_sub_component(
-    const index component,
+component_handle timer_sub_component(
+    const component_handle component,
     const index meta,
     const timer_component_ticked *const on_tick,
     const timer_component_expired *const on_expiry,

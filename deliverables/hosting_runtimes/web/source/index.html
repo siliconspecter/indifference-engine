@@ -39,7 +39,6 @@
       position: fixed;
       left: 50%;
       top: 50%;
-      cursor: none;
       visibility: hidden;
       image-rendering: pixelated;
     }
@@ -528,27 +527,46 @@
         let canvasVisible = false
 
         const canvasElement = document.getElementsByTagName('canvas')[0]
-        // canvasElement.height = videoBufferRows
-        // canvasElement.width = videoBufferColumns
 
-        canvasElement.addEventListener('mousemove', (e) => {
-          // cursorAvailable = true
-          // cursorX = e.layerX
-          // cursorY = e.layerY
-        })
+        if (pointerState !== null) {
+          canvasElement.style.cursor = 'none'
 
-        canvasElement.addEventListener('mouseout', (e) => {
-          // cursorAvailable = false
-          // cursorClicking = false
-        })
+          canvasElement.addEventListener('mousemove', (e) => {
+            if (pointerState[0] === 0) {
+              pointerState[0] = 1
+            }
 
-        canvasElement.addEventListener('mousedown', () => {
-          // cursorClicking = true
-        })
+            if (pointerRow !== null) {
+              pointerRow[0] = e.offsetY
+            }
 
-        canvasElement.addEventListener('mouseup', () => {
-          // cursorClicking = false
-        })
+            if (pointerColumn !== null) {
+              pointerColumn[0] = e.offsetX
+            }
+          })
+
+          canvasElement.addEventListener('mouseout', (e) => {
+            pointerState[0] = 0
+          })
+
+          canvasElement.addEventListener('mousedown', (e) => {
+            pointerState[0] = 2
+
+            if (pointerRow !== null) {
+              pointerRow[0] = e.offsetY
+            }
+
+            if (pointerColumn !== null) {
+              pointerColumn[0] = e.offsetX
+            }
+          })
+
+          canvasElement.addEventListener('mouseup', () => {
+            if (pointerState[0] === 2) {
+              pointerState[0] = 1
+            }
+          })
+        }
 
         const canvasContext = canvasElement.getContext('2d')
 

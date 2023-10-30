@@ -44,7 +44,6 @@ API are documented through comments and are listed here for quick reference.
 
 | Header                                                         | Description                                                       |
 | -------------------------------------------------------------- | ----------------------------------------------------------------- |
-| @ref deliverables/wasm_module/source/engine/primitives/byte.h  | Unsigned 8-bit integers.                                          |
 | @ref deliverables/wasm_module/source/engine/primitives/f32.h   | 32-bit floating-point numbers (equivalent to WASM `f32`).         |
 | @ref deliverables/wasm_module/source/engine/primitives/index.h | Array indices.                                                    |
 | @ref deliverables/wasm_module/source/engine/primitives/s32.h   | Signed 2's complement 32-bit integers (equivalent to WASM `i32`). |

@@ -24,6 +24,7 @@
  * @remark This defaults to a focal length of 50mm.
  * @remark This defaults to covering the full video buffer.
  * @remark This defaults to playing sounds at unity gain (1.0).
+ * @remark This defaults to filling the video buffer.
  * @param entity The index of the entity to which to add a camera component.
  * @return A handle to the created camera component.
  */
@@ -45,6 +46,7 @@ component_handle camera_component(
  * @remark This defaults to a focal length of 50mm.
  * @remark This defaults to covering the full video buffer.
  * @remark This defaults to playing sounds at unity gain (1.0).
+ * @remark This defaults to filling the video buffer.
  * @param component A handle to the component to which to add a camera
  *                  component.
  * @return A handle to the created camera component.
@@ -97,5 +99,48 @@ extern f32 camera_focal_lengths[MAXIMUM_CAMERA_COMPONENTS];
  *         a handle to a camera component.
  */
 extern f32 camera_component_gains[MAXIMUM_CAMERA_COMPONENTS];
+
+/**
+ * The locations of the camera components' viewports' left edges, in clip space
+ * (-1 = left edge of the video buffer, 1 = right edge of the video buffer).
+ * @remark Modify only during scripts or the tick event handler (doing so in
+ *         other situations may produce unexpected results).
+ * @remark Use @ref COMPONENT_HANDLE_META to extract the index to use here from
+ *         a handle to a camera component.
+ */
+extern f32 camera_component_viewport_lefts[MAXIMUM_CAMERA_COMPONENTS];
+
+/**
+ * The locations of the camera components' viewports' right edges, in clip space
+ * (-1 = left edge of the video buffer, 1 = right edge of the video buffer).
+ * @remark Modify only during scripts or the tick event handler (doing so in
+ *         other situations may produce unexpected results).
+ * @remark Use @ref COMPONENT_HANDLE_META to extract the index to use here from
+ *         a handle to a camera component.
+ */
+extern f32 camera_component_viewport_rights[MAXIMUM_CAMERA_COMPONENTS];
+
+/**
+ * The locations of the camera components' viewports' bottom edges, in clip
+ * space (-1 = bottom edge of the video buffer, 1 = top edge of the video
+ * buffer).
+ * @remark Modify only during scripts or the tick event handler (doing so in
+ *         other situations may produce unexpected results).
+ * @remark Use @ref COMPONENT_HANDLE_META to extract the index to use here from
+ *         a handle to a camera component.
+ */
+extern f32 camera_component_viewport_bottoms[MAXIMUM_CAMERA_COMPONENTS];
+
+/**
+ * The locations of the camera components' viewports' top edges, in clip space
+ * (-1 = bottom edge of the video buffer, 1 = top edge of the video buffer).
+ * @remark Modify only during scripts or the tick event handler (doing so in
+ *         other situations may produce unexpected results).
+ * @remark Use @ref COMPONENT_HANDLE_META to extract the index to use here from
+ *         a handle to a camera component.
+ */
+extern f32 camera_component_viewport_tops[MAXIMUM_CAMERA_COMPONENTS];
+
+// TODO: a way to cancel interpolation
 
 #endif

@@ -27,7 +27,7 @@ typedef struct
   /**
    * The colors within the image, running from left to right then top to bottom.
    */
-  const color *constcolors;
+  const color *const colors;
 } image;
 
 /**

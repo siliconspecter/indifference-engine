@@ -47,19 +47,20 @@ culled_by model_to_clip(
 
 /**
  * Transforms a vector from clip space into world space using an inverse
- * model-view matrix.
+ * model-view-projection matrix.
  * @remark Coordinates are only culled when W is 0; X, Y and Z may be any
  *         values.
  * @param clip The vector in clip space to transform.
- * @param inverse_model_view The inverse model-view matrix to apply.
- * @param world Overwritten with the corresponding vector in world space when
+ * @param inverse_model_view_projection The inverse model-view-projection matrix
+ *                                      to apply.
+ * @param model Overwritten with the corresponding vector in model space when
  *              not culled, otherwise unmodified.  May be "clip".
  * @return The culling which occurred, if any.
  */
-culled_by clip_to_world(
+culled_by clip_to_model(
     const vector clip,
-    const matrix inverse_model_view,
-    vector world);
+    const matrix inverse_model_view_projection,
+    vector model);
 
 /**
  * Calculates the product of two matrices.

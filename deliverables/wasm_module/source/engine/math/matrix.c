@@ -48,16 +48,16 @@ culled_by model_to_clip(
   }
 }
 
-culled_by clip_to_world(
+culled_by clip_to_model(
     const vector clip,
-    const matrix inverse_model_view,
-    vector world)
+    const matrix inverse_model_view_projection,
+    vector model)
 {
   const f32 clip_x = clip[0];
   const f32 clip_y = clip[1];
   const f32 clip_z = clip[2];
 
-  const f32 w = inverse_model_view[3][0] * clip_x + inverse_model_view[3][1] * clip_y + inverse_model_view[3][2] * clip_z + inverse_model_view[3][3];
+  const f32 w = inverse_model_view_projection[3][0] * clip_x + inverse_model_view_projection[3][1] * clip_y + inverse_model_view_projection[3][2] * clip_z + inverse_model_view_projection[3][3];
 
   if (w == 0.0f)
   {
@@ -67,9 +67,9 @@ culled_by clip_to_world(
   {
     const f32 w_reciprocal = 1.0f / w;
 
-    world[0] = (inverse_model_view[0][0] * clip_x + inverse_model_view[0][1] * clip_y + inverse_model_view[0][2] * clip_z + inverse_model_view[0][3]) * w_reciprocal;
-    world[1] = (inverse_model_view[1][0] * clip_x + inverse_model_view[1][1] * clip_y + inverse_model_view[1][2] * clip_z + inverse_model_view[1][3]) * w_reciprocal;
-    world[2] = (inverse_model_view[2][0] * clip_x + inverse_model_view[2][1] * clip_y + inverse_model_view[2][2] * clip_z + inverse_model_view[2][3]) * w_reciprocal;
+    model[0] = (inverse_model_view_projection[0][0] * clip_x + inverse_model_view_projection[0][1] * clip_y + inverse_model_view_projection[0][2] * clip_z + inverse_model_view_projection[0][3]) * w_reciprocal;
+    model[1] = (inverse_model_view_projection[1][0] * clip_x + inverse_model_view_projection[1][1] * clip_y + inverse_model_view_projection[1][2] * clip_z + inverse_model_view_projection[1][3]) * w_reciprocal;
+    model[2] = (inverse_model_view_projection[2][0] * clip_x + inverse_model_view_projection[2][1] * clip_y + inverse_model_view_projection[2][2] * clip_z + inverse_model_view_projection[2][3]) * w_reciprocal;
 
     return CULLED_BY_NOTHING;
   }

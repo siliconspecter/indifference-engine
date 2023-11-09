@@ -259,3 +259,25 @@ void model(
   inverse[3][2] = 0;
   inverse[3][3] = 1;
 }
+
+void copy_matrix(
+    const matrix origin,
+    matrix destination)
+{
+  destination[0][0] = origin[0][0];
+  destination[0][1] = origin[0][1];
+  destination[0][2] = origin[0][2];
+  destination[0][3] = origin[0][3];
+  destination[1][0] = origin[1][0];
+  destination[1][1] = origin[1][1];
+  destination[1][2] = origin[1][2];
+  destination[1][3] = origin[1][3];
+  destination[2][0] = origin[2][0];
+  destination[2][1] = origin[2][1];
+  destination[2][2] = origin[2][2];
+  destination[2][3] = origin[2][3];
+  destination[3][0] = origin[3][0];
+  destination[3][1] = origin[3][1];
+  destination[3][2] = origin[3][2];
+  destination[3][3] = origin[3][3];
+}

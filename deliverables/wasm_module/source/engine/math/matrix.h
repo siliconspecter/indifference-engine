@@ -120,4 +120,13 @@ void model(
     matrix forward,
     matrix inverse);
 
+/**
+ * Copies the content of a matrix into another.
+ * @param origin The matrix to copy from.
+ * @param destination The matrix to copy to.
+ */
+void copy_matrix(
+    const matrix origin,
+    matrix destination);
+
 #endif

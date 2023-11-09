@@ -3,3 +3,8 @@
 #include "../export.h"
 
 s32 persist ALIGN(s32) = PERSIST_NOTHING;
+
+void persist_state()
+{
+  persist |= PERSIST_STATE;
+}

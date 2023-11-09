@@ -25,6 +25,12 @@ extern s32 video_columns;
 extern color video_colors[MAXIMUM_VIDEO_ROWS * MAXIMUM_VIDEO_COLUMNS];
 
 /**
+ * The depth buffer, running from left to right, then top to bottom, where -1
+ * is near and 1 is far, non-linear.
+ */
+extern f32 video_depths[MAXIMUM_VIDEO_ROWS * MAXIMUM_VIDEO_COLUMNS];
+
+/**
  * The progress through the current tick, where 0 is the start and 1 is the end.
  */
 extern f32 tick_progress;

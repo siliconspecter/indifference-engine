@@ -53,6 +53,7 @@ API are documented through comments and are listed here for quick reference.
 | Header                                                      | Description                                   |
 | ----------------------------------------------------------- | --------------------------------------------- |
 | @ref deliverables/wasm_module/source/engine/scenes/entity.h | Entities to which components can be attached. |
+| @ref deliverables/wasm_module/source/engine/scenes/scene.h  | Helpers for managing scenes.                  |
 
 ### Components
 

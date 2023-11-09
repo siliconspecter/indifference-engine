@@ -10,6 +10,7 @@
 #include "pointer.h"
 #include "controllers.h"
 #include "../../miscellaneous.h"
+#include "../../scenes/scene.h"
 
 const s32 ticks_per_second ALIGN(s32) = TICKS_PER_SECOND;
 const s32 maximum_video_rows ALIGN(s32) = MAXIMUM_VIDEO_ROWS;
@@ -35,7 +36,8 @@ const s32 safe_area_columns ALIGN(s32) = SAFE_AREA_COLUMNS;
                                                               item(1073741839, controller_states)         \
                                                                   item(1073741840, controller_y_axes)     \
                                                                       item(1073741841, controller_x_axes) \
-                                                                          item(1073741842, error)
+                                                                          item(1073741842, error)         \
+                                                                              item(536870912, current_script)
 
 #define BUFFER_NULL(identifier, data) NULL,
 

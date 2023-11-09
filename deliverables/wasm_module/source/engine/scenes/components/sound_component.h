@@ -55,8 +55,8 @@ typedef void(sound_component_ended)(index meta);
 component_handle sound_component(
     const index entity,
     const index meta,
-    const sound_component_replaced *const on_replacement,
-    const sound_component_ended *const on_end,
+    sound_component_replaced *const on_replacement,
+    sound_component_ended *const on_end,
     const sound *const sound);
 
 /**
@@ -85,8 +85,8 @@ component_handle sound_component(
 component_handle sound_sub_component(
     const component_handle component,
     const index meta,
-    const sound_component_replaced *const on_replacement,
-    const sound_component_ended *const on_end,
+    sound_component_replaced *const on_replacement,
+    sound_component_ended *const on_end,
     const sound *const sound);
 
 /**

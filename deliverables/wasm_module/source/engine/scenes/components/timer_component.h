@@ -51,8 +51,8 @@ typedef void(timer_component_expired)(index meta);
 index timer_component(
     const index entity,
     const index meta,
-    const timer_component_ticked *const on_tick,
-    const timer_component_expired *const on_expiry,
+    timer_component_ticked *const on_tick,
+    timer_component_expired *const on_expiry,
     const s32 ticks);
 
 /**
@@ -80,8 +80,8 @@ index timer_component(
 component_handle timer_sub_component(
     const component_handle component,
     const index meta,
-    const timer_component_ticked *const on_tick,
-    const timer_component_expired *const on_expiry,
+    timer_component_ticked *const on_tick,
+    timer_component_expired *const on_expiry,
     const s32 ticks);
 
 #endif

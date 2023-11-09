@@ -29,4 +29,10 @@ extern color video_colors[MAXIMUM_VIDEO_ROWS * MAXIMUM_VIDEO_COLUMNS];
  */
 extern f32 tick_progress;
 
+/**
+ * The inverse progress through the current tick, where 1 is the start and 0 is
+ * the end.
+ */
+extern f32 inverse_tick_progress;
+
 #endif

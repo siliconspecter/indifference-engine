@@ -18,22 +18,40 @@
 index entity();
 
 /**
- * The forward transforms of all entities.
+ * The forward transforms of all entities at the start of the tick.
  * @remark Modify only during scripts or the tick event handler (doing so in
  *         other situations may produce unexpected results).
- * @remark Any changes made to this array MUST be mirrorred in
- *         @ref entity_inverse_transforms.
+ * @remark Any changes made to this array MUST be mirrored in
+ *         @ref previous_inverse_entity_transforms.
  */
-extern matrix entity_transforms[MAXIMUM_ENTITIES];
+extern matrix previous_entity_transforms[MAXIMUM_ENTITIES];
 
 /**
- * The forward transforms of all entities.
+ * The forward transforms of all entities at the end of the tick.
  * @remark Modify only during scripts or the tick event handler (doing so in
  *         other situations may produce unexpected results).
- * @remark Any changes made to this array MUST be mirrorred in
- *         @ref entity_inverse_transforms.
+ * @remark Any changes made to this array MUST be mirrored in
+ *         @ref next_inverse_entity_transforms.
  */
-extern matrix entity_inverse_transforms[MAXIMUM_ENTITIES];
+extern matrix next_entity_transforms[MAXIMUM_ENTITIES];
+
+/**
+ * The inverse transforms of all entities at the start of the tick.
+ * @remark Modify only during scripts or the tick event handler (doing so in
+ *         other situations may produce unexpected results).
+ * @remark Any changes made to this array MUST be mirrored in
+ *         @ref previous_entity_transforms.
+ */
+extern matrix previous_inverse_entity_transforms[MAXIMUM_ENTITIES];
+
+/**
+ * The inverse transforms of all entities at the end of the tick.
+ * @remark Modify only during scripts or the tick event handler (doing so in
+ *         other situations may produce unexpected results).
+ * @remark Any changes made to this array MUST be mirrored in
+ *         @ref next_entity_transforms.
+ */
+extern matrix next_inverse_entity_transforms[MAXIMUM_ENTITIES];
 
 /**
  * Destroys a previously created entity and all components within it.

@@ -7,7 +7,7 @@
 #include "line.h"
 #include "../exports/buffers/video.h"
 
-void opaque_line(
+void render_opaque_line(
     const color start_color,
     const s32 start_row,
     const s32 start_column,
@@ -207,7 +207,7 @@ void opaque_line(
   }
 }
 
-void transparent_line(
+void render_transparent_line(
     const color start_color,
     const s32 start_row,
     const s32 start_column,

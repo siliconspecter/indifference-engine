@@ -22,7 +22,7 @@
  * @param end_depth The depth of the end of the line, where -1 is near and 1 is
  *                  far, non-linear.
  */
-void opaque_line(
+void render_opaque_line(
     const color start_color,
     const s32 start_row,
     const s32 start_column,
@@ -52,7 +52,7 @@ void opaque_line(
  * @param end_depth The depth of the end of the line, where -1 is near and 1 is
  *                  far, non-linear.
  */
-void transparent_line(
+void render_transparent_line(
     const color start_color,
     const s32 start_row,
     const s32 start_column,

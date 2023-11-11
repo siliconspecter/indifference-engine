@@ -34,6 +34,6 @@ typedef struct
  * Provides a image when executed.
  * @return The provided image.
  */
-typedef const image *const(image_factory)();
+typedef const image *(image_factory)();
 
 #endif

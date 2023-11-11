@@ -33,7 +33,7 @@ typedef struct
   /**
    * The image for each texture in the mesh.
    */
-  const image_factory *const images;
+  image_factory *const images;
 
   /**
    * The number of triangles for each texture in the mesh.  The triangles in the
@@ -66,6 +66,6 @@ typedef struct
  * Provides a mesh when executed.
  * @return The provided mesh.
  */
-typedef const mesh *const(mesh_factory)();
+typedef const mesh *(mesh_factory)();
 
 #endif

@@ -230,3 +230,6 @@ def unregister():
 
 if __name__ == "__main__":
     register()
+
+# TODO: Configure render settings (resolution, antialiasing)
+# TODO: Connect alpha

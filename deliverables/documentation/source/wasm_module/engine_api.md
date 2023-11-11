@@ -3,9 +3,10 @@
 All types, variables, functions and preprocessor macros which form the engine's
 API are documented through comments and are listed here for quick reference.
 
-| Header                                                      | Description                                            |
-| ----------------------------------------------------------- | ------------------------------------------------------ |
-| @ref deliverables/wasm_module/source/engine/miscellaneous.h | General-purpose helpers yet to be organized elsewhere. |
+| Header                                                      | Description                                                                            |
+| ----------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| @ref deliverables/wasm_module/source/engine/miscellaneous.h | General-purpose helpers yet to be organized elsewhere.                                 |
+| @ref deliverables/wasm_module/source/engine/scripting_api.h | A single header which includes most headers which might be needed for writing scripts. |
 
 ## Assets
 

@@ -6,7 +6,7 @@
 
 #include "../primitives/index.h"
 #include "../math/matrix.h"
-#include "../limits.h"
+#include "../../game/project_settings/limits.h"
 
 /**
  * Creates a new entity with a default identity transform.
@@ -53,6 +53,22 @@ extern matrix previous_inverse_entity_transforms[MAXIMUM_ENTITIES];
  */
 extern matrix next_inverse_entity_transforms[MAXIMUM_ENTITIES];
 
+#ifndef DOXYGEN_IGNORE
+
+/**
+ * The forward transforms of all entities at the time of the current video
+ * render.
+ */
+extern matrix interpolated_entity_transforms[MAXIMUM_ENTITIES];
+
+/**
+ * The inverse transforms of all entities at the time of the current video
+ * render.
+ */
+extern matrix interpolated_inverse_entity_transforms[MAXIMUM_ENTITIES];
+
+#endif
+
 /**
  * Destroys a previously created entity and all components within it.
  * @remark Call only during scripts or the tick event handler (doing so in other
@@ -65,5 +81,21 @@ extern matrix next_inverse_entity_transforms[MAXIMUM_ENTITIES];
  * @param entity The index of the entity to destroy.
  */
 void destroy_entity(const index entity);
+
+/**
+ * Destroys a previously created entities and all components within them.
+ * @remark Call only during scripts or the tick event handler (doing so in other
+ *         situations may produce unexpected results).
+ */
+void destroy_all_entities();
+
+#ifndef DOXYGEN_IGNORE
+
+/**
+ * Called during the video event handler to perform interpolation as required.
+ */
+void prepare_entities_for_video();
+
+#endif
 
 #endif

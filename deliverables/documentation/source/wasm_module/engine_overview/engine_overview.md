@@ -79,14 +79,29 @@ expiry callbacks or animation callbacks (doing so in other situations may
 produce unexpected results):
 
 ```c
+copy_matrix(
+  previous_entity_transforms[previously_created_entity],
+  next_entity_transforms[previously_created_entity]
+);
+
+copy_matrix(
+  previous_inverse_ntity_transforms[previously_created_entity],
+  next_inverse_entity_transforms[previously_created_entity]
+);
+
 transform(
   location_vector,
   rotation_vector,
   scale_vector,
-  entity_transforms[previously_created_entity],
-  entity_inverse_transforms[previously_created_entity]
+  next_entity_transforms[previously_created_entity],
+  next_entity_inverse_transforms[previously_created_entity]
 );
 ```
+
+Note that there is a "previous" and "next" copy of each.  Should the game render
+multiple frames of video during a single game tick, these act as "key frames" to
+"tween" between over the course of the game tick.  Most components in the engine
+follow this pattern.
 
 #### Destroying
 

@@ -7,7 +7,9 @@
 #include "component.h"
 #include "../../primitives/f32.h"
 #include "../../primitives/index.h"
+#include "../../math/matrix.h"
 #include "../../../game/project_settings/limits.h"
+#include "../../video/color.h"
 
 /**
  * Creates a new camera component as a direct child of an entity.
@@ -55,92 +57,289 @@ component_handle camera_sub_component(
     const component_handle component);
 
 /**
- * The sensor sizes of camera components, in millimeters.
+ * The sensor sizes of camera components at the start of the tick, in
+ * millimeters.
  * @remark Modify only during scripts or the tick event handler (doing so in
  *         other situations may produce unexpected results).
  * @remark Use @ref COMPONENT_HANDLE_META to extract the index to use here from
  *         a handle to a camera component.
  */
-extern f32 camera_sensor_sizes[MAXIMUM_CAMERA_COMPONENTS];
+extern f32 previous_camera_component_sensor_sizes[MAXIMUM_CAMERA_COMPONENTS];
 
 /**
- * The near clip distances of camera components.
+ * The sensor sizes of camera components at the end of the tick, in
+ * millimeters.
  * @remark Modify only during scripts or the tick event handler (doing so in
  *         other situations may produce unexpected results).
  * @remark Use @ref COMPONENT_HANDLE_META to extract the index to use here from
  *         a handle to a camera component.
  */
-extern f32 camera_near_clip_distances[MAXIMUM_CAMERA_COMPONENTS];
+extern f32 next_camera_component_sensor_sizes[MAXIMUM_CAMERA_COMPONENTS];
 
 /**
- * The far clip distances of camera components.
+ * The near clip distances of camera components at the start of the tick.
  * @remark Modify only during scripts or the tick event handler (doing so in
  *         other situations may produce unexpected results).
  * @remark Use @ref COMPONENT_HANDLE_META to extract the index to use here from
  *         a handle to a camera component.
  */
-extern f32 camera_far_clip_distances[MAXIMUM_CAMERA_COMPONENTS];
+extern f32 previous_camera_component_near_clip_distances[MAXIMUM_CAMERA_COMPONENTS];
 
 /**
- * The focal lengths of camera components, in millimeters.
+ * The near clip distances of camera components at the end of the tick.
  * @remark Modify only during scripts or the tick event handler (doing so in
  *         other situations may produce unexpected results).
  * @remark Use @ref COMPONENT_HANDLE_META to extract the index to use here from
  *         a handle to a camera component.
  */
-extern f32 camera_focal_lengths[MAXIMUM_CAMERA_COMPONENTS];
+extern f32 next_camera_component_near_clip_distances[MAXIMUM_CAMERA_COMPONENTS];
 
 /**
- * The gain levels of sounds played by camera components, where 0.0 is silent
- * and 1.0 is unity gain.
+ * The far clip distances of camera components at the start of the tick.
  * @remark Modify only during scripts or the tick event handler (doing so in
  *         other situations may produce unexpected results).
  * @remark Use @ref COMPONENT_HANDLE_META to extract the index to use here from
  *         a handle to a camera component.
  */
-extern f32 camera_component_gains[MAXIMUM_CAMERA_COMPONENTS];
+extern f32 previous_camera_component_far_clip_distances[MAXIMUM_CAMERA_COMPONENTS];
 
 /**
- * The locations of the camera components' viewports' left edges, in clip space
- * (-1 = left edge of the video buffer, 1 = right edge of the video buffer).
+ * The far clip distances of camera components at the end of the tick.
  * @remark Modify only during scripts or the tick event handler (doing so in
  *         other situations may produce unexpected results).
  * @remark Use @ref COMPONENT_HANDLE_META to extract the index to use here from
  *         a handle to a camera component.
  */
-extern f32 camera_component_viewport_lefts[MAXIMUM_CAMERA_COMPONENTS];
+extern f32 next_camera_component_far_clip_distances[MAXIMUM_CAMERA_COMPONENTS];
 
 /**
- * The locations of the camera components' viewports' right edges, in clip space
- * (-1 = left edge of the video buffer, 1 = right edge of the video buffer).
+ * The focal lengths of camera components at the start of the tick, in
+ * millimeters.
  * @remark Modify only during scripts or the tick event handler (doing so in
  *         other situations may produce unexpected results).
  * @remark Use @ref COMPONENT_HANDLE_META to extract the index to use here from
  *         a handle to a camera component.
  */
-extern f32 camera_component_viewport_rights[MAXIMUM_CAMERA_COMPONENTS];
+extern f32 previous_camera_component_focal_lengths[MAXIMUM_CAMERA_COMPONENTS];
 
 /**
- * The locations of the camera components' viewports' bottom edges, in clip
- * space (-1 = bottom edge of the video buffer, 1 = top edge of the video
- * buffer).
+ * The focal lengths of camera components at the end of the tick, in
+ * millimeters.
  * @remark Modify only during scripts or the tick event handler (doing so in
  *         other situations may produce unexpected results).
  * @remark Use @ref COMPONENT_HANDLE_META to extract the index to use here from
  *         a handle to a camera component.
  */
-extern f32 camera_component_viewport_bottoms[MAXIMUM_CAMERA_COMPONENTS];
+extern f32 next_camera_component_focal_lengths[MAXIMUM_CAMERA_COMPONENTS];
 
 /**
- * The locations of the camera components' viewports' top edges, in clip space
- * (-1 = bottom edge of the video buffer, 1 = top edge of the video buffer).
+ * The gain levels of sounds played by camera components at the start of the
+ * tick, where 0.0 is silent and 1.0 is unity gain.
  * @remark Modify only during scripts or the tick event handler (doing so in
  *         other situations may produce unexpected results).
  * @remark Use @ref COMPONENT_HANDLE_META to extract the index to use here from
  *         a handle to a camera component.
  */
-extern f32 camera_component_viewport_tops[MAXIMUM_CAMERA_COMPONENTS];
+extern f32 previous_camera_component_gains[MAXIMUM_CAMERA_COMPONENTS];
 
-// TODO: a way to cancel interpolation
+/**
+ * The gain levels of sounds played by camera components at the end of the
+ * tick, where 0.0 is silent and 1.0 is unity gain.
+ * @remark Modify only during scripts or the tick event handler (doing so in
+ *         other situations may produce unexpected results).
+ * @remark Use @ref COMPONENT_HANDLE_META to extract the index to use here from
+ *         a handle to a camera component.
+ */
+extern f32 next_camera_component_gains[MAXIMUM_CAMERA_COMPONENTS];
+
+/**
+ * The locations of the camera components' viewports' top edges at the start of
+ * the tick, in normalized video buffer space (-1 = bottom edge of the video
+ * buffer, 1 = top edge of the video buffer).
+ * @remark Modify only during scripts or the tick event handler (doing so in
+ *         other situations may produce unexpected results).
+ * @remark Use @ref COMPONENT_HANDLE_META to extract the index to use here from
+ *         a handle to a camera component.
+ */
+extern f32 previous_camera_component_tops[MAXIMUM_CAMERA_COMPONENTS];
+
+/**
+ * The locations of the camera components' viewports' top edges at the end of
+ * the tick, in normalized video buffer space (-1 = bottom edge of the video
+ * buffer, 1 = top edge of the video buffer).
+ * @remark Modify only during scripts or the tick event handler (doing so in
+ *         other situations may produce unexpected results).
+ * @remark Use @ref COMPONENT_HANDLE_META to extract the index to use here from
+ *         a handle to a camera component.
+ */
+extern f32 next_camera_component_tops[MAXIMUM_CAMERA_COMPONENTS];
+
+/**
+ * The locations of the camera components' viewports' bottom edges at the start
+ * of the tick, in normalized video buffer space (-1 = bottom edge of the video
+ * buffer, 1 = top edge of the video buffer).
+ * @remark Modify only during scripts or the tick event handler (doing so in
+ *         other situations may produce unexpected results).
+ * @remark Use @ref COMPONENT_HANDLE_META to extract the index to use here from
+ *         a handle to a camera component.
+ */
+extern f32 previous_camera_component_bottoms[MAXIMUM_CAMERA_COMPONENTS];
+
+/**
+ * The locations of the camera components' viewports' bottom edges at the end of
+ * the tick, in normalized video buffer space (-1 = bottom edge of the video
+ * buffer, 1 = top edge of the video buffer).
+ * @remark Modify only during scripts or the tick event handler (doing so in
+ *         other situations may produce unexpected results).
+ * @remark Use @ref COMPONENT_HANDLE_META to extract the index to use here from
+ *         a handle to a camera component.
+ */
+extern f32 next_camera_component_bottoms[MAXIMUM_CAMERA_COMPONENTS];
+
+/**
+ * The locations of the camera components' viewports' left edges at the start of
+ * the tick, in normalized video buffer space (-1 = left edge of the video
+ * buffer, 1 = right edge of the video buffer).
+ * @remark Modify only during scripts or the tick event handler (doing so in
+ *         other situations may produce unexpected results).
+ * @remark Use @ref COMPONENT_HANDLE_META to extract the index to use here from
+ *         a handle to a camera component.
+ */
+extern f32 previous_camera_component_lefts[MAXIMUM_CAMERA_COMPONENTS];
+
+/**
+ * The locations of the camera components' viewports' left edges at the end of
+ * the tick, in normalized video buffer space (-1 = left edge of the video
+ * buffer, 1 = right edge of the video buffer).
+ * @remark Modify only during scripts or the tick event handler (doing so in
+ *         other situations may produce unexpected results).
+ * @remark Use @ref COMPONENT_HANDLE_META to extract the index to use here from
+ *         a handle to a camera component.
+ */
+extern f32 next_camera_component_lefts[MAXIMUM_CAMERA_COMPONENTS];
+
+/**
+ * The locations of the camera components' viewports' right edges at the start
+ * of the tick, in normalized video buffer space (-1 = left edge of the video
+ * buffer, 1 = right edge of the video buffer).
+ * @remark Modify only during scripts or the tick event handler (doing so in
+ *         other situations may produce unexpected results).
+ * @remark Use @ref COMPONENT_HANDLE_META to extract the index to use here from
+ *         a handle to a camera component.
+ */
+extern f32 previous_camera_component_rights[MAXIMUM_CAMERA_COMPONENTS];
+
+/**
+ * The locations of the camera components' viewports' right edges at the end of
+ * the tick, in normalized video buffer space (-1 = left edge of the video
+ * buffer, 1 = right edge of the video buffer).
+ * @remark Modify only during scripts or the tick event handler (doing so in
+ *         other situations may produce unexpected results).
+ * @remark Use @ref COMPONENT_HANDLE_META to extract the index to use here from
+ *         a handle to a camera component.
+ */
+extern f32 next_camera_component_rights[MAXIMUM_CAMERA_COMPONENTS];
+
+#ifndef DOXYGEN_IGNORE
+
+/**
+ * A matrix which transforms from world space into the current camera
+ * component's clip space.
+ * @remark Content is undefined except when a specific camera component.  Do NOT
+ *         re-assign.
+ */
+extern matrix camera_component_view_projection;
+
+/**
+ * A matrix which transforms from world space into the current camera
+ * component's clip space.
+ * @remark Content is undefined except when a specific camera component.  Do NOT
+ *         re-assign.
+ */
+extern matrix camera_component_inverse_view_projection;
+
+/**
+ * The start of the color data held by the current camera component's viewport.
+ * @remark Content is undefined except when rendering a specific camera
+ *         component.  Do NOT re-assign.
+ */
+extern color *camera_component_colors;
+
+/**
+ * The start of the depth data held by the current camera component's viewport.
+ * @remark Content is undefined except when rendering a specific camera
+ *         component.  Do NOT re-assign.
+ */
+extern f32 *camera_component_depths;
+
+/**
+ * The height of the current camera component's viewport, in pixel rows.
+ * @remark Content is undefined except when rendering a specific camera
+ *         component.  Do NOT re-assign.
+ */
+extern s32 camera_component_rows;
+
+/**
+ * The width of the current camera component's viewport, in pixel columns.
+ * @remark Content is undefined except when rendering a specific camera
+ *         component.  Do NOT re-assign.
+ */
+extern s32 camera_component_columns;
+
+/**
+ * The coefficient to multiply by when transforming from the current camera
+ * component's clip space to video rows.
+ * @remark Content is undefined except when rendering a specific camera
+ *         component.  Do NOT re-assign.
+ */
+extern f32 camera_component_clip_to_video_row_coefficient;
+
+/**
+ * The offset to add when transforming from the current camera component's clip
+ * space to video rows.
+ * @remark Content is undefined except when rendering a specific camera
+ *         component.  Do NOT re-assign.
+ */
+extern f32 camera_component_clip_to_video_row_offset;
+
+/**
+ * The coefficient to multiply by when transforming from the current camera
+ * component's clip space to video columns.
+ * @remark Content is undefined except when rendering a specific camera
+ *         component.  Do NOT re-assign.
+ */
+extern f32 camera_component_clip_to_video_column_coefficient;
+
+/**
+ * The offset to add when transforming from the current camera component's clip
+ * space to video columns.
+ * @remark Content is undefined except when rendering a specific camera
+ *         component.  Do NOT re-assign.
+ */
+extern f32 camera_component_clip_to_video_column_offset;
+
+/**
+ * The gain levels of sounds played by the current camera component, where 0.0
+ * is silent and 1.0 is unity gain.
+ * @remark Content is undefined except when rendering a specific camera
+ *         component.  Do NOT re-assign.
+ */
+extern f32 camera_component_gain;
+
+/**
+ * A callback which is called for each rendered camera component during a
+ * render.
+ * @remark The fields representing the parameters of the current camera
+ *         component are accessible until this returns.
+ */
+typedef void(render_camera_component)();
+
+/**
+ * Called by the video event handler to render all camera components.
+ * @param on_render Called once per rendered camera component.
+ */
+void render_camera_components(render_camera_component *const on_render);
+
+#endif
 
 #endif

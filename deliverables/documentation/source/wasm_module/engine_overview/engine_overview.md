@@ -35,7 +35,19 @@ script to run.  This will:
   changes made around the same time are saved.
 - Finally, execute the script.
 
-TODO: adding a new script
+### Adding a new script
+
+The scripts which can be executed are defined in
+@ref deliverables/source/game/scripts/scripts.h as macros (e.g. `SCRIPT_START`).
+
+The switch-case statement in `script_body` within
+@ref deliverables/source/game/scripts/scripts.c then defines what each script
+does when executed.
+
+These scripts are likely to become numerous and lengthy.  It is recommended that
+a separate C file be written for each one, exporting a single function executed
+by `script_body`.  @ref deliverables/engine/scripting_api.h can be included to
+easily access most types, constants, macros and functions a script would need.
 
 ## Scenes
 

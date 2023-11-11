@@ -54,7 +54,13 @@ easily access most types, constants, macros and functions a script would need.
 There is one scene at a time.  This is a void which can be populated with
 entities.  The scene is _not_ persisted as state.
 
-TODO: units, axes, etc.
+### Coordinate space
+
+Indifference Engine imitates Blender's coordinate space, in which a camera with
+an all-zero rotation looks towards -Z, where right points towards X+ and up
+points towards Y+.
+
+Positional units are not strictly defined, but are usually taken to be meters.
 
 ### Entities
 

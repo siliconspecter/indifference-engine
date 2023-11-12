@@ -2,6 +2,28 @@
 #include "index.h"
 #include "quantity.h"
 
+void copy_f32(
+    const f32 source,
+    f32 *const destination,
+    const quantity quantity)
+{
+  for (index index = 0; index < quantity; index++)
+  {
+    destination[index] = source;
+  }
+}
+
+void copy_f32s(
+    const f32 *const source,
+    f32 *const destination,
+    const quantity quantity)
+{
+  for (index index = 0; index < quantity; index++)
+  {
+    destination[index] = source[index];
+  }
+}
+
 void add_f32s_f32s(
     const f32 *const augends,
     const f32 *const addends,

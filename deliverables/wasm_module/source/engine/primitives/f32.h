@@ -15,6 +15,28 @@ typedef float f32;
 ASSERT(f32_size, sizeof(f32) == 4);
 
 /**
+ * Copies a f32 over a memory region.
+ * @param source The f32 to copy.
+ * @param destination The f32s to copy to.
+ * @param quantity The number of f32s to copy.
+ */
+void copy_f32(
+    const f32 source,
+    f32 *const destination,
+    const quantity quantity);
+
+/**
+ * Copies f32s from one memory region to another.
+ * @param source The f32s to copy from.
+ * @param destination The f32s to copy to.
+ * @param quantity The number of f32s to copy.
+ */
+void copy_f32s(
+    const f32 *const source,
+    f32 *const destination,
+    const quantity quantity);
+
+/**
  * Calculates the sums of the f32s in two memory regions.
  * @param augends The f32s to add to.
  * @param addends The f32s to add by.

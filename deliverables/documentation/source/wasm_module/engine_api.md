@@ -75,6 +75,7 @@ API are documented through comments and are listed here for quick reference.
 
 ## Video
 
-| Header                                                    | Description                                      |
-| --------------------------------------------------------- | ------------------------------------------------ |
-| @ref deliverables/wasm_module/source/engine/video/color.h | 32-bits-per-pixel red-green-blue-opacity-colors. |
+| Header                                                          | Description                                       |
+| --------------------------------------------------------------- | ------------------------------------------------- |
+| @ref deliverables/wasm_module/source/engine/video/color.h       | 32-bits-per-pixel red-green-blue-opacity-colors.  |
+| @ref deliverables/wasm_module/source/engine/video/float_color.h | 128-bits-per-pixel red-green-blue-opacity-colors. |

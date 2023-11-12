@@ -34,12 +34,22 @@
 /**
  * Indicates that no camera components were left to allocate.
  */
-#define ERROR_NO_CAMERA_COMPONENTS_TO_ALLOCATE -4
+#define ERROR_NO_CAMERA_COMPONENTS_TO_ALLOCATE -5
+
+/**
+ * Indicates that no opaque mesh components were left to allocate.
+ */
+#define ERROR_NO_OPAQUE_MESH_COMPONENTS_TO_ALLOCATE -6
 
 /**
  * Indicates that the game was requested to run a script it did not support.
  */
-#define ERROR_UNKNOWN_SCRIPT -5
+#define ERROR_UNKNOWN_SCRIPT -7
+
+/**
+ * Indicates that a mesh contained too many vertices.
+ */
+#define ERROR_MESH_HAS_TOO_MANY_VERTICES -8
 
 /**
  * The error number readable by the hosting platform at the end of the current

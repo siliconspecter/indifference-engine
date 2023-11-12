@@ -3,6 +3,86 @@
 What follows is a description of how the [engine API](./engine_api.md) is
 intended to be used to build your game.
 
+## Timing
+
+Game logic advances on a fixed interval called a "tick", synchronized with audio
+whenever possible.
+
+### Changing the tick rate
+
+The default tick rate is fine for most games, but it can be adjusted in
+@ref deliverables/wasm_module/source/game/project_settings/timing_settings.h
+(`TICKS_PER_SECOND`).
+
+#### Side effects
+
+##### System load
+
+Increasing the number of ticks per second increases the amount of system load
+accordingly.  For example, a game with a tick rate of 5Hz requires 25% more CPU
+time to update each second than a game with a tick rate of 4Hz.
+
+For games which have complex or large-scale simulation aspects but do not
+require low-latency input such as real-time strategy games, it may be necessary
+to reduce the tick rate.
+
+##### Input latency
+
+Decreasing the number of ticks per second increases worst-case input latency.
+For example, while at 5 ticks per second, it might be 200msec between pressing
+a button and a tick event handling that input, at 4 ticks per second it could be
+as much as 250msec.
+
+For games which require low-latency input such as fighting games or e-sports
+titles, it may be necessary to increase the tick rate.
+
+##### Game speed
+
+Increasing or decreasing the number of ticks per second causes the game itself
+to change in speed accordingly; a car traveling at 5 units per tick goes twice
+as fast when there are twice as many ticks per second.  You may therefore need
+to adjust physics and animations after changing the tick rate.
+
+##### Audio fidelity
+
+A fixed number of audio samples is rendered for each tick event, so by default,
+increasing the tick rate from 60Hz to 100Hz would increase the sample rate from
+44100Hz to 73500Hz.  This would marginally increase audio quality at the cost of
+significantly increased system load.
+
+To correct this, specify the number of audio samples that your game should
+render each tick in
+@ref deliverables/wasm_module/source/game/project_settings/audio_settings.h
+(`SAMPLES_PER_TICK`).  This should be your target sample rate divided by the
+tick rate (e.g. 44100 / 60Hz = 735 samples per tick).
+
+### Interpolation
+
+The video render loop is decoupled from the game tick.  As a consequence, it is
+possible that on displays with high refresh rates, the same game state may be
+displayed multiple times.
+
+Interpolation is supported throughout the engine to support this; generally,
+linear interpolation is performed with `previous_` and `next_` variable pairs.
+
+For example:
+
+- Given a `previous_camera_component_sensor_sizes[a_camera_index]` of `32`.
+- Given a `next_camera_component_sensor_sizes[a_camera_index]` of `40`.
+- Should a video render be attempted at 1/4 of the way through a tick, the
+  sensor size will effectively be `34`.
+
+The engine will not automatically assign `previous_` values based upon `next_`
+values in any scenario.
+
+## Coordinate space
+
+Indifference Engine imitates Blender's coordinate space, in which a camera with
+an all-zero rotation looks towards -Z, where right points towards X+ and up
+points towards Y+.
+
+Positional units are not strictly defined, but are usually taken to be meters.
+
 ## Persistence
 
 Entries need to be added to the list in
@@ -38,29 +118,23 @@ script to run.  This will:
 ### Adding a new script
 
 The scripts which can be executed are defined in
-@ref deliverables/source/game/scripts/scripts.h as macros (e.g. `SCRIPT_START`).
+@ref deliverables/wasm_module/source/game/scripts/scripts.h as macros (e.g.
+`SCRIPT_START`).
 
 The switch-case statement in `script_body` within
-@ref deliverables/source/game/scripts/scripts.c then defines what each script
-does when executed.
+@ref deliverables/wasm_module/source/game/scripts/scripts.c then defines what
+each script does when executed.
 
 These scripts are likely to become numerous and lengthy.  It is recommended that
 a separate C file be written for each one, exporting a single function executed
-by `script_body`.  @ref deliverables/engine/scripting_api.h can be included to
-easily access most types, constants, macros and functions a script would need.
+by `script_body`.  @ref deliverables/wasm_module/engine/scripting_api.h can be
+included to easily access most types, constants, macros and functions a script
+would need.
 
 ## Scenes
 
 There is one scene at a time.  This is a void which can be populated with
 entities.  The scene is _not_ persisted as state.
-
-### Coordinate space
-
-Indifference Engine imitates Blender's coordinate space, in which a camera with
-an all-zero rotation looks towards -Z, where right points towards X+ and up
-points towards Y+.
-
-Positional units are not strictly defined, but are usually taken to be meters.
 
 ### Entities
 

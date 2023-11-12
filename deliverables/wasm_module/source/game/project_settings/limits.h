@@ -35,4 +35,9 @@
  */
 #define MAXIMUM_OPAQUE_MESH_COMPONENTS 8
 
+/**
+ * The maximum number of vertices which may exist in a mesh.
+ */
+#define MAXIMUM_VERTICES_PER_MESH 4096
+
 #endif

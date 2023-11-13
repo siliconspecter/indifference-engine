@@ -15,7 +15,7 @@ EXPORT void video()
   initialize_event_handler();
   inverse_tick_progress = 1.0f - tick_progress;
 
-  copy_f32(0.0f, camera_component_opacities, video_rows * video_columns);
+  copy_f32(0.0f, video_opacities, video_rows * video_columns);
 
   prepare_entities_for_video();
   render_camera_components(render);

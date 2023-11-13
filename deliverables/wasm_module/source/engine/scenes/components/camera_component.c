@@ -36,7 +36,10 @@ static const matrix *inverse_transforms[MAXIMUM_CAMERA_COMPONENTS];
 
 matrix camera_component_view_projection;
 matrix camera_component_inverse_view_projection;
-color *camera_component_colors;
+f32 *camera_component_reds;
+f32 *camera_component_greens;
+f32 *camera_component_blues;
+f32 *camera_component_opacities;
 f32 *camera_component_depths;
 s32 camera_component_rows;
 s32 camera_component_columns;
@@ -94,14 +97,14 @@ component_handle camera_sub_component(
 
 void render_camera_components(render_camera_component *const on_render)
 {
-  const f32 clip_to_video_row_offset = ((f32)video_rows) / 2.0f;
-  const f32 clip_to_video_row_coefficient = -clip_to_video_row_offset;
-
-  const f32 clip_to_video_column_offset = ((f32)video_columns) / 2.0f;
-  const f32 clip_to_video_column_coefficient = clip_to_video_column_offset;
-
   if (first_occupied != INDEX_NONE)
   {
+    const f32 clip_to_video_row_offset = ((f32)video_rows) / 2.0f;
+    const f32 clip_to_video_row_coefficient = -clip_to_video_row_offset;
+
+    const f32 clip_to_video_column_offset = ((f32)video_columns) / 2.0f;
+    const f32 clip_to_video_column_coefficient = clip_to_video_column_offset;
+
     for (index camera = first_occupied; camera <= last_occupied; camera++)
     {
       const matrix *const transform = transforms[camera];
@@ -127,22 +130,13 @@ void render_camera_components(render_camera_component *const on_render)
         if (left_columns_clamped < right_columns_clamped && top_rows_clamped < bottom_rows_clamped)
         {
           const index offset = top_rows_clamped * video_columns + left_columns_clamped;
-          camera_component_colors = &video_colors[offset];
+          camera_component_reds = &video_reds[offset];
+          camera_component_greens = &video_greens[offset];
+          camera_component_blues = &video_blues[offset];
+          camera_component_opacities = &video_opacities[offset];
           camera_component_depths = &video_depths[offset];
           camera_component_rows = bottom_rows - top_rows;
           camera_component_columns = right_columns - left_columns;
-
-          const f32 *const last_depth_row = &camera_component_depths[camera_component_rows * video_columns];
-
-          for (f32 *depth_row = camera_component_depths; depth_row < last_depth_row; depth_row += video_columns)
-          {
-            const f32 *const last_depth_column = &depth_row[camera_component_columns];
-
-            for (f32 *depth_column = depth_row; depth_column < last_depth_column; depth_column++)
-            {
-              *depth_column = 1.0f;
-            }
-          }
 
           const f32 sensor_size = tick_progress * next_camera_component_sensor_sizes[camera] + inverse_tick_progress * previous_camera_component_sensor_sizes[camera];
           const f32 near_clip_distance = tick_progress * next_camera_component_near_clip_distances[camera] + inverse_tick_progress * previous_camera_component_near_clip_distances[camera];

@@ -1,412 +1,239 @@
 #include "../primitives/index.h"
 #include "../primitives/s32.h"
 #include "../primitives/f32.h"
-#include "color.h"
 #include "../math/relational.h"
 #include "../scenes/components/camera_component.h"
 #include "line.h"
 #include "../exports/buffers/video.h"
 
 void render_opaque_line(
-    const color start_color,
-    const s32 start_row,
-    const s32 start_column,
+    const f32 start_red,
+    const f32 start_green,
+    const f32 start_blue,
+    const f32 start_row,
+    const f32 start_column,
     const f32 start_depth,
-    const color end_color,
-    const s32 end_row,
-    const s32 end_column,
+    const f32 end_red,
+    const f32 end_green,
+    const f32 end_blue,
+    const f32 end_row,
+    const f32 end_column,
     const f32 end_depth)
 {
-  s32 top_row, bottom_row;
+  const s32 rounded_start_row = start_row;
+  const s32 rounded_start_column = start_column;
 
-  if (start_row > end_row)
+  const s32 rounded_end_row = end_row;
+  const s32 rounded_end_column = end_column;
+
+  const s32 row_delta = rounded_end_row - rounded_start_row;
+  const s32 absolute_row_delta = absolute_f32(row_delta);
+  const s32 column_delta = rounded_end_column - rounded_start_column;
+  const s32 absolute_column_delta = absolute_f32(column_delta);
+
+  s32 start_primary_axis, end_primary_axis, indices_per_primary_axis, maximum_primary_axis, indices_per_secondary_axis, maximum_secondary_axis;
+  f32 starts[5], ends[5];
+
+  starts[1] = start_depth;
+  starts[2] = start_red;
+  starts[3] = start_green;
+  starts[4] = start_blue;
+  ends[1] = end_depth;
+  ends[2] = end_red;
+  ends[3] = end_green;
+  ends[4] = end_blue;
+
+  if (absolute_row_delta > absolute_column_delta)
   {
-    top_row = end_row;
-    bottom_row = start_row;
+    start_primary_axis = start_row;
+    end_primary_axis = end_row;
+    indices_per_primary_axis = camera_component_columns;
+    maximum_primary_axis = camera_component_rows;
+    indices_per_secondary_axis = 1;
+    maximum_secondary_axis = camera_component_columns;
+    starts[0] = start_column;
+    ends[0] = end_column;
   }
   else
   {
-    top_row = start_row;
-    bottom_row = end_row;
+    start_primary_axis = start_column;
+    end_primary_axis = end_column;
+    indices_per_primary_axis = 1;
+    maximum_primary_axis = camera_component_columns;
+    indices_per_secondary_axis = camera_component_columns;
+    maximum_secondary_axis = camera_component_rows;
+    starts[0] = start_row;
+    ends[0] = end_row;
   }
 
-  const s32 absolute_row_delta = bottom_row - top_row;
+  s32 first_primary_axis, last_primary_axis;
+  f32 per_pixels[5], *accumulators, progress_per_pixel;
 
-  s32 left_column, right_column;
+  subtract_f32s_f32s(ends, starts, per_pixels, 5);
 
-  if (start_column > end_column)
+  if (end_primary_axis > start_primary_axis)
   {
-    left_column = end_column;
-    right_column = start_column;
+    first_primary_axis = start_primary_axis;
+    last_primary_axis = end_primary_axis;
+    accumulators = starts;
+    progress_per_pixel = 1.0f / ((f32)(end_primary_axis + 1 - start_primary_axis));
   }
   else
   {
-    left_column = start_column;
-    right_column = end_column;
+    first_primary_axis = end_primary_axis;
+    last_primary_axis = start_primary_axis;
+    accumulators = ends;
+    progress_per_pixel = 1.0f / ((f32)(end_primary_axis - 1 - start_primary_axis));
   }
 
-  const s32 absolute_column_delta = right_column - left_column;
+  multiply_f32s_f32(per_pixels, progress_per_pixel, per_pixels, 5);
 
-  if (!absolute_column_delta && !absolute_row_delta)
+  if (first_primary_axis < 0)
   {
-    const index destination_index = start_row * camera_component_columns + start_column;
-    if (start_depth < camera_component_depths[destination_index])
-    {
-      camera_component_colors[destination_index] = LAYER_COLORS(start_color, camera_component_colors[destination_index]);
-    }
+    multiply_add_f32s_f32_f32s(per_pixels, -first_primary_axis, accumulators, accumulators, 4);
+    first_primary_axis = 0;
   }
-  else if (absolute_column_delta > absolute_row_delta)
+
+  last_primary_axis = MIN(last_primary_axis, maximum_primary_axis);
+
+  for (s32 primary_axis = first_primary_axis; primary_axis <= last_primary_axis; primary_axis++)
   {
-    const f32 column_delta_reciprocal = 1.0f / absolute_column_delta;
+    const s32 secondary_axis = accumulators[0];
 
-    f32 left_depth, right_depth, left_row, right_row;
-    color left_color, right_color;
-
-    if (start_column > end_column)
+    if (secondary_axis >= 0 && secondary_axis < maximum_secondary_axis)
     {
-      left_depth = end_depth;
-      right_depth = start_depth;
-      left_row = end_row;
-      right_row = start_row;
-      left_color = end_color;
-      right_color = start_color;
-    }
-    else
-    {
-      left_depth = start_depth;
-      right_depth = end_depth;
-      left_row = start_row;
-      right_row = end_row;
-      left_color = start_color;
-      right_color = end_color;
-    }
+      const index index = primary_axis * indices_per_primary_axis + secondary_axis * indices_per_secondary_axis;
 
-    f32 depth_accumulator = left_depth;
-    const f32 depth_delta = right_depth - left_depth;
-    const f32 depth_per_column = depth_delta * column_delta_reciprocal;
+      const f32 depth = accumulators[1];
 
-    f32 color_accumulator_red = EXTRACT_RED(left_color);
-    f32 color_accumulator_green = EXTRACT_GREEN(left_color);
-    f32 color_accumulator_blue = EXTRACT_BLUE(left_color);
-    f32 color_accumulator_alpha = EXTRACT_OPACITY(left_color);
-
-    const f32 color_delta_red = EXTRACT_RED(right_color) - color_accumulator_red;
-    const f32 color_delta_green = EXTRACT_GREEN(right_color) - color_accumulator_green;
-    const f32 color_delta_blue = EXTRACT_BLUE(right_color) - color_accumulator_blue;
-    const f32 color_delta_alpha = EXTRACT_OPACITY(right_color) - color_accumulator_alpha;
-
-    const f32 color_per_column_red = color_delta_red * column_delta_reciprocal;
-    const f32 color_per_column_green = color_delta_green * column_delta_reciprocal;
-    const f32 color_per_column_blue = color_delta_blue * column_delta_reciprocal;
-    const f32 color_per_column_alpha = color_delta_alpha * column_delta_reciprocal;
-
-    f32 row_accumulator = left_row;
-    const f32 row_delta = right_row - left_row;
-    const f32 rows_per_column = row_delta * column_delta_reciprocal;
-
-    const s32 min_column = MAX(0, left_column);
-    const s32 max_column = MIN(right_column, camera_component_columns - 1);
-
-    for (s32 column = min_column; column <= max_column; column++)
-    {
-      const s32 row = row_accumulator;
-
-      if (row >= 0 && row < camera_component_rows)
+      if (depth < camera_component_depths[index])
       {
-        const index destination_index = row * video_columns + column;
-
-        if (depth_accumulator < camera_component_depths[destination_index])
-        {
-          camera_component_depths[destination_index] = depth_accumulator;
-          camera_component_colors[destination_index] = CLAMPED_COLOR((s32)color_accumulator_red, (s32)color_accumulator_green, (s32)color_accumulator_blue, (s32)color_accumulator_alpha);
-        }
+        camera_component_depths[index] = depth;
+        camera_component_reds[index] = accumulators[2];
+        camera_component_greens[index] = accumulators[3];
+        camera_component_blues[index] = accumulators[4];
+        camera_component_opacities[index] = 1;
       }
-
-      depth_accumulator += depth_per_column;
-      color_accumulator_red += color_per_column_red;
-      color_accumulator_green += color_per_column_green;
-      color_accumulator_blue += color_per_column_blue;
-      color_accumulator_alpha += color_per_column_alpha;
-      row_accumulator += rows_per_column;
-    }
-  }
-  else
-  {
-    const f32 row_delta_reciprocal = 1.0f / absolute_row_delta;
-
-    f32 top_depth, bottom_depth, top_column, bottom_column;
-    color top_color, bottom_color;
-
-    if (start_row > end_row)
-    {
-      top_depth = end_depth;
-      bottom_depth = start_depth;
-      top_column = end_column;
-      bottom_column = start_column;
-      top_color = end_color;
-      bottom_color = start_color;
-    }
-    else
-    {
-      top_depth = start_depth;
-      bottom_depth = end_depth;
-      top_column = start_column;
-      bottom_column = end_column;
-      top_color = start_color;
-      bottom_color = end_color;
     }
 
-    f32 depth_accumulator = top_depth;
-    const f32 depth_delta = bottom_depth - top_depth;
-    const f32 depth_per_row = depth_delta * row_delta_reciprocal;
-
-    f32 color_accumulator_red = EXTRACT_RED(top_color);
-    f32 color_accumulator_green = EXTRACT_GREEN(top_color);
-    f32 color_accumulator_blue = EXTRACT_BLUE(top_color);
-    f32 color_accumulator_alpha = EXTRACT_OPACITY(top_color);
-
-    const f32 color_delta_red = EXTRACT_RED(bottom_color) - color_accumulator_red;
-    const f32 color_delta_green = EXTRACT_GREEN(bottom_color) - color_accumulator_green;
-    const f32 color_delta_blue = EXTRACT_BLUE(bottom_color) - color_accumulator_blue;
-    const f32 color_delta_alpha = EXTRACT_OPACITY(bottom_color) - color_accumulator_alpha;
-
-    const f32 color_per_row_red = color_delta_red * row_delta_reciprocal;
-    const f32 color_per_row_green = color_delta_green * row_delta_reciprocal;
-    const f32 color_per_row_blue = color_delta_blue * row_delta_reciprocal;
-    const f32 color_per_row_alpha = color_delta_alpha * row_delta_reciprocal;
-
-    f32 column_accumulator = top_column;
-    const f32 column_delta = bottom_column - top_column;
-    const f32 columns_per_row = column_delta * row_delta_reciprocal;
-
-    const s32 min_row = MAX(0, top_row);
-    const s32 max_row = MIN(bottom_row, camera_component_rows - 1);
-
-    for (s32 row = min_row; row <= max_row; row++)
-    {
-      const s32 column = column_accumulator;
-
-      if (column >= 0 && column < camera_component_columns)
-      {
-        const index destination_index = row * video_columns + column;
-
-        if (depth_accumulator < camera_component_depths[destination_index])
-        {
-          camera_component_depths[destination_index] = depth_accumulator;
-          camera_component_colors[destination_index] = CLAMPED_COLOR((s32)color_accumulator_red, (s32)color_accumulator_green, (s32)color_accumulator_blue, (s32)color_accumulator_alpha);
-        }
-      }
-
-      depth_accumulator += depth_per_row;
-      color_accumulator_red += color_per_row_red;
-      color_accumulator_green += color_per_row_green;
-      color_accumulator_blue += color_per_row_blue;
-      color_accumulator_alpha += color_per_row_alpha;
-      column_accumulator += columns_per_row;
-    }
+    add_f32s_f32s(accumulators, per_pixels, accumulators, 5);
   }
 }
 
 void render_transparent_line(
-    const color start_color,
-    const s32 start_row,
-    const s32 start_column,
+    const f32 start_red,
+    const f32 start_green,
+    const f32 start_blue,
+    const f32 start_opacity,
+    const f32 start_row,
+    const f32 start_column,
     const f32 start_depth,
-    const color end_color,
-    const s32 end_row,
-    const s32 end_column,
+    const f32 end_red,
+    const f32 end_green,
+    const f32 end_blue,
+    const f32 end_opacity,
+    const f32 end_row,
+    const f32 end_column,
     const f32 end_depth)
 {
-  s32 top_row, bottom_row;
+  const s32 rounded_start_row = start_row;
+  const s32 rounded_start_column = start_column;
 
-  if (start_row > end_row)
+  const s32 rounded_end_row = end_row;
+  const s32 rounded_end_column = end_column;
+
+  const s32 row_delta = rounded_end_row - rounded_start_row;
+  const s32 absolute_row_delta = absolute_f32(row_delta);
+  const s32 column_delta = rounded_end_column - rounded_start_column;
+  const s32 absolute_column_delta = absolute_f32(column_delta);
+
+  s32 start_primary_axis, end_primary_axis, indices_per_primary_axis, maximum_primary_axis, indices_per_secondary_axis, maximum_secondary_axis;
+  f32 starts[6], ends[6];
+
+  starts[1] = start_depth;
+  starts[2] = start_opacity;
+  starts[3] = start_red;
+  starts[4] = start_green;
+  starts[5] = start_blue;
+  ends[1] = end_depth;
+  ends[2] = end_opacity;
+  ends[3] = end_red;
+  ends[4] = end_green;
+  ends[5] = end_blue;
+
+  if (absolute_row_delta > absolute_column_delta)
   {
-    top_row = end_row;
-    bottom_row = start_row;
+    start_primary_axis = start_row;
+    end_primary_axis = end_row;
+    indices_per_primary_axis = camera_component_columns;
+    maximum_primary_axis = camera_component_rows;
+    indices_per_secondary_axis = 1;
+    maximum_secondary_axis = camera_component_columns;
+    starts[0] = start_column;
+    ends[0] = end_column;
   }
   else
   {
-    top_row = start_row;
-    bottom_row = end_row;
+    start_primary_axis = start_column;
+    end_primary_axis = end_column;
+    indices_per_primary_axis = 1;
+    maximum_primary_axis = camera_component_columns;
+    indices_per_secondary_axis = camera_component_columns;
+    maximum_secondary_axis = camera_component_rows;
+    starts[0] = start_row;
+    ends[0] = end_row;
   }
 
-  const s32 absolute_row_delta = bottom_row - top_row;
+  s32 first_primary_axis, last_primary_axis;
+  f32 per_pixels[6], *accumulators, progress_per_pixel;
 
-  s32 left_column, right_column;
+  subtract_f32s_f32s(ends, starts, per_pixels, 6);
 
-  if (start_column > end_column)
+  if (end_primary_axis > start_primary_axis)
   {
-    left_column = end_column;
-    right_column = start_column;
+    first_primary_axis = start_primary_axis;
+    last_primary_axis = end_primary_axis;
+    accumulators = starts;
+    progress_per_pixel = 1.0f / ((f32)(end_primary_axis + 1 - start_primary_axis));
   }
   else
   {
-    left_column = start_column;
-    right_column = end_column;
+    first_primary_axis = end_primary_axis;
+    last_primary_axis = start_primary_axis;
+    accumulators = ends;
+    progress_per_pixel = 1.0f / ((f32)(end_primary_axis - 1 - start_primary_axis));
   }
 
-  const s32 absolute_column_delta = right_column - left_column;
+  multiply_f32s_f32(per_pixels, progress_per_pixel, per_pixels, 6);
 
-  if (!absolute_column_delta && !absolute_row_delta)
+  if (first_primary_axis < 0)
   {
-    const index destination_index = start_row * camera_component_columns + start_column;
-    if (start_depth < camera_component_depths[destination_index])
-    {
-      camera_component_colors[destination_index] = LAYER_COLORS(start_color, camera_component_colors[destination_index]);
-    }
+    multiply_add_f32s_f32_f32s(per_pixels, -first_primary_axis, accumulators, accumulators, 4);
+    first_primary_axis = 0;
   }
-  else if (absolute_column_delta > absolute_row_delta)
+
+  last_primary_axis = MIN(last_primary_axis, maximum_primary_axis);
+
+  for (s32 primary_axis = first_primary_axis; primary_axis <= last_primary_axis; primary_axis++)
   {
-    const f32 column_delta_reciprocal = 1.0f / absolute_column_delta;
+    const s32 secondary_axis = accumulators[0];
 
-    f32 left_depth, right_depth, left_row, right_row;
-    color left_color, right_color;
-
-    if (start_column > end_column)
+    if (secondary_axis >= 0 && secondary_axis < maximum_secondary_axis)
     {
-      left_depth = end_depth;
-      right_depth = start_depth;
-      left_row = end_row;
-      right_row = start_row;
-      left_color = end_color;
-      right_color = start_color;
-    }
-    else
-    {
-      left_depth = start_depth;
-      right_depth = end_depth;
-      left_row = start_row;
-      right_row = end_row;
-      left_color = start_color;
-      right_color = end_color;
-    }
+      const index index = primary_axis * indices_per_primary_axis + secondary_axis * indices_per_secondary_axis;
 
-    f32 depth_accumulator = left_depth;
-    const f32 depth_delta = right_depth - left_depth;
-    const f32 depth_per_column = depth_delta * column_delta_reciprocal;
-
-    f32 color_accumulator_red = EXTRACT_RED(left_color);
-    f32 color_accumulator_green = EXTRACT_GREEN(left_color);
-    f32 color_accumulator_blue = EXTRACT_BLUE(left_color);
-    f32 color_accumulator_alpha = EXTRACT_OPACITY(left_color);
-
-    const f32 color_delta_red = EXTRACT_RED(right_color) - color_accumulator_red;
-    const f32 color_delta_green = EXTRACT_GREEN(right_color) - color_accumulator_green;
-    const f32 color_delta_blue = EXTRACT_BLUE(right_color) - color_accumulator_blue;
-    const f32 color_delta_alpha = EXTRACT_OPACITY(right_color) - color_accumulator_alpha;
-
-    const f32 color_per_column_red = color_delta_red * column_delta_reciprocal;
-    const f32 color_per_column_green = color_delta_green * column_delta_reciprocal;
-    const f32 color_per_column_blue = color_delta_blue * column_delta_reciprocal;
-    const f32 color_per_column_alpha = color_delta_alpha * column_delta_reciprocal;
-
-    f32 row_accumulator = left_row;
-    const f32 row_delta = right_row - left_row;
-    const f32 rows_per_column = row_delta * column_delta_reciprocal;
-
-    const s32 min_column = MAX(0, left_column);
-    const s32 max_column = MIN(right_column, camera_component_columns - 1);
-
-    for (s32 column = min_column; column <= max_column; column++)
-    {
-      const s32 row = row_accumulator;
-
-      if (row >= 0 && row < camera_component_rows)
+      if (accumulators[1] < camera_component_depths[index])
       {
-        const index destination_index = row * video_columns + column;
+        const f32 source_opacity = accumulators[2];
+        const f32 destination_opacity = camera_component_opacities[index] * (1.0f - source_opacity);
 
-        if (depth_accumulator < camera_component_depths[destination_index])
-        {
-          const color source_color = CLAMPED_COLOR((s32)color_accumulator_red, (s32)color_accumulator_green, (s32)color_accumulator_blue, (s32)color_accumulator_alpha);
-          const color destination_color = camera_component_colors[destination_index];
-
-          camera_component_colors[destination_index] = LAYER_COLORS(source_color, destination_color);
-        }
+        camera_component_opacities[index] = source_opacity + destination_opacity;
+        camera_component_reds[index] = linearly_interpolate_f32_f32_f32(camera_component_reds[index], accumulators[3], source_opacity, destination_opacity);
+        camera_component_greens[index] = linearly_interpolate_f32_f32_f32(camera_component_greens[index], accumulators[4], source_opacity, destination_opacity);
+        camera_component_blues[index] = linearly_interpolate_f32_f32_f32(camera_component_blues[index], accumulators[5], source_opacity, destination_opacity);
       }
-
-      depth_accumulator += depth_per_column;
-      color_accumulator_red += color_per_column_red;
-      color_accumulator_green += color_per_column_green;
-      color_accumulator_blue += color_per_column_blue;
-      color_accumulator_alpha += color_per_column_alpha;
-      row_accumulator += rows_per_column;
-    }
-  }
-  else
-  {
-    const f32 row_delta_reciprocal = 1.0f / absolute_row_delta;
-
-    f32 top_depth, bottom_depth, top_column, bottom_column;
-    color top_color, bottom_color;
-
-    if (start_row > end_row)
-    {
-      top_depth = end_depth;
-      bottom_depth = start_depth;
-      top_column = end_column;
-      bottom_column = start_column;
-      top_color = end_color;
-      bottom_color = start_color;
-    }
-    else
-    {
-      top_depth = start_depth;
-      bottom_depth = end_depth;
-      top_column = start_column;
-      bottom_column = end_column;
-      top_color = start_color;
-      bottom_color = end_color;
     }
 
-    f32 depth_accumulator = top_depth;
-    const f32 depth_delta = bottom_depth - top_depth;
-    const f32 depth_per_row = depth_delta * row_delta_reciprocal;
-
-    f32 color_accumulator_red = EXTRACT_RED(top_color);
-    f32 color_accumulator_green = EXTRACT_GREEN(top_color);
-    f32 color_accumulator_blue = EXTRACT_BLUE(top_color);
-    f32 color_accumulator_alpha = EXTRACT_OPACITY(top_color);
-
-    const f32 color_delta_red = EXTRACT_RED(bottom_color) - color_accumulator_red;
-    const f32 color_delta_green = EXTRACT_GREEN(bottom_color) - color_accumulator_green;
-    const f32 color_delta_blue = EXTRACT_BLUE(bottom_color) - color_accumulator_blue;
-    const f32 color_delta_alpha = EXTRACT_OPACITY(bottom_color) - color_accumulator_alpha;
-
-    const f32 color_per_row_red = color_delta_red * row_delta_reciprocal;
-    const f32 color_per_row_green = color_delta_green * row_delta_reciprocal;
-    const f32 color_per_row_blue = color_delta_blue * row_delta_reciprocal;
-    const f32 color_per_row_alpha = color_delta_alpha * row_delta_reciprocal;
-
-    f32 column_accumulator = top_column;
-    const f32 column_delta = bottom_column - top_column;
-    const f32 columns_per_row = column_delta * row_delta_reciprocal;
-
-    const s32 min_row = MAX(0, top_row);
-    const s32 max_row = MIN(bottom_row, camera_component_rows - 1);
-
-    for (s32 row = min_row; row <= max_row; row++)
-    {
-      const s32 column = column_accumulator;
-
-      if (column >= 0 && column < camera_component_columns)
-      {
-        const index destination_index = row * video_columns + column;
-
-        if (depth_accumulator < camera_component_depths[destination_index])
-        {
-          const color source_color = CLAMPED_COLOR((s32)color_accumulator_red, (s32)color_accumulator_green, (s32)color_accumulator_blue, (s32)color_accumulator_alpha);
-          const color destination_color = camera_component_colors[destination_index];
-
-          camera_component_colors[destination_index] = LAYER_COLORS(source_color, destination_color);
-        }
-      }
-
-      depth_accumulator += depth_per_row;
-      color_accumulator_red += color_per_row_red;
-      color_accumulator_green += color_per_row_green;
-      color_accumulator_blue += color_per_row_blue;
-      color_accumulator_alpha += color_per_row_alpha;
-      column_accumulator += columns_per_row;
-    }
+    add_f32s_f32s(accumulators, per_pixels, accumulators, 6);
   }
 }

@@ -169,7 +169,9 @@
         let maximumVideoRows = null
         let safeAreaRows = null
         let safeAreaColumns = null
-        let videoColors = null
+        let videoReds = null
+        let videoGreens = null
+        let videoBlues = null
         let pointerState = null
         let pointerRow = null
         let pointerColumn = null
@@ -273,9 +275,9 @@
 
               case 1073741829:
                 if (size % 4) {
-                  throw new Error(`Video colors size incorrect; expected multiple of 4, actual ${size}.`)
+                  throw new Error(`Video reds size incorrect; expected multiple of 4, actual ${size}.`)
                 } else {
-                  videoColors = new Uint8ClampedArray(memory.buffer, location, size)
+                  videoReds = new Float32Array(memory.buffer, location, size / 4)
                 }
                 break
 
@@ -374,6 +376,22 @@
                   throw new Error(`Error size incorrect; expected 4, actual ${size}.`)
                 }
                 break
+
+              case 1073741843:
+                if (size % 4) {
+                  throw new Error(`Video greens size incorrect; expected multiple of 4, actual ${size}.`)
+                } else {
+                  videoGreens = new Float32Array(memory.buffer, location, size / 4)
+                }
+                break
+
+              case 1073741844:
+                if (size % 4) {
+                  throw new Error(`Video blues size incorrect; expected multiple of 4, actual ${size}.`)
+                } else {
+                  videoBlues = new Float32Array(memory.buffer, location, size / 4)
+                }
+                break
             }
           }
 
@@ -393,25 +411,50 @@
           }
         }
 
-        if (videoColors !== null && maximumVideoRows === null) {
-          videoColors = null
-          console.warn('Unable to use video colors without maximum video rows.')
+        if (videoReds !== null && maximumVideoRows === null) {
+          videoReds = null
+          console.warn('Unable to use video reds without maximum video rows.')
         }
 
-        if (maximumVideoRows !== null && videoColors === null) {
+        if (videoGreens !== null && videoReds === null) {
+          videoGreens = null
+          console.warn('Unable to use video greens without video reds.')
+        }
+
+        if (videoBlues !== null && videoReds === null) {
+          videoBlues = null
+          console.warn('Unable to use video blues without video reds.')
+        }
+
+        if (videoReds !== null && videoGreens === null) {
+          videoReds = null
+          console.warn('Unable to use video reds without video greens.')
+        }
+
+        if (videoReds !== null && videoBlues === null) {
+          videoReds = null
+          console.warn('Unable to use video reds without video blues.')
+        }
+
+        if (maximumVideoRows !== null && videoReds === null) {
           maximumVideoRows = null
-          console.warn('Unable to use maximum video rows without a video colors.')
+          console.warn('Unable to use maximum video rows without video reds.')
         }
 
-        if (videoColors !== null && videoColors.length % maximumVideoRows) {
+        if (videoReds !== null && videoReds.length % maximumVideoRows) {
           throw new Error('Length of video colors not evenly divisible by the maximum number of video rows.')
         }
 
-        const maximumVideoColumns = videoColors.length / 4 / maximumVideoRows
+        if (videoReds !== null && videoReds.length !== videoGreens.length) {
+          throw new Error('Length of video reds and video greens do not match.')
+        }
 
-        if (safeAreaRows !== null && videoColors === null) {
+        // TODO: will crash without video reds.
+        const maximumVideoColumns = videoReds.length / maximumVideoRows
+
+        if (safeAreaRows !== null && videoReds === null) {
           safeAreaRows = null
-          console.warn('Unable to use safe area rows without video colors.')
+          console.warn('Unable to use safe area rows without video reds.')
         }
 
         if (safeAreaRows === null) {
@@ -420,9 +463,9 @@
           throw new Error('Safe area rows greater than video rows.')
         }
 
-        if (safeAreaColumns !== null && videoColors === null) {
+        if (safeAreaColumns !== null && videoReds === null) {
           safeAreaColumns = null
-          console.warn('Unable to use safe area columns without video colors.')
+          console.warn('Unable to use safe area columns without video reds.')
         }
 
         if (safeAreaColumns === null) {
@@ -441,14 +484,14 @@
           console.warn('Unable to use audio samples without ticks per second.')
         }
 
-        if (videoRows !== null && videoColors === null) {
+        if (videoRows !== null && videoReds === null) {
           videoRows = null
-          console.warn('Unable to use video rows without video colors.')
+          console.warn('Unable to use video rows without video reds.')
         }
 
-        if (videoColumns !== null && videoColors === null) {
+        if (videoColumns !== null && videoReds === null) {
           videoColumns = null
-          console.warn('Unable to use video columns without video colors.')
+          console.warn('Unable to use video columns without video reds.')
         }
 
         if (tick !== null && ticksPerSecond === null) {
@@ -481,9 +524,9 @@
           console.warn('Unable to use pointer row without pointer state.')
         }
 
-        if (pointerRow !== null && videoColors === null) {
+        if (pointerRow !== null && videoReds === null) {
           pointerRow = null
-          console.warn('Unable to use pointer row without video colors.')
+          console.warn('Unable to use pointer row without video reds.')
         }
 
         if (pointerColumn !== null && pointerState === null) {
@@ -491,9 +534,9 @@
           console.warn('Unable to use pointer column without pointer state.')
         }
 
-        if (pointerColumn !== null && videoColors === null) {
+        if (pointerColumn !== null && videoReds === null) {
           pointerColumn = null
-          console.warn('Unable to use pointer column without video colors.')
+          console.warn('Unable to use pointer column without video reds.')
         }
 
         if (listenerNormal !== null && audioSamples === null) {
@@ -519,11 +562,11 @@
           throw new Error(`Inconsistent number of controllers between states (${controllerStates.length}) and X axes (${controllerXAxes.length}).`)
         }
 
-        // TODO: video/videoCOlors combine check
+        // TODO: video/videoReds combine check
 
         // TODO
-        if (videoColors === null) {
-          throw new Error('Games without video colors are currently unsupported.')
+        if (videoReds === null) {
+          throw new Error('Games without video reds are currently unsupported.')
         }
 
         // TODO
@@ -601,7 +644,8 @@
 
         let previousScale = null
 
-        let videoColorsImageData = null
+        let videoUint8Array = null
+        let videoImageData = null
 
         let canvasVisible = false
 
@@ -677,7 +721,9 @@
               canvasElement.height = nextVideoRows
               canvasElement.width = nextVideoColumns
 
-              videoColorsImageData = new ImageData(new Uint8ClampedArray(videoColors.buffer, videoColors.byteOffset, nextVideoRows * nextVideoColumns * 4), nextVideoColumns, nextVideoRows)
+              videoUint8Array = new Uint8ClampedArray(nextVideoRows * nextVideoColumns * 4)
+              videoUint8Array.fill(255)
+              videoImageData = new ImageData(videoUint8Array, nextVideoColumns, nextVideoRows)
 
               videoRows[0] = nextVideoRows
               videoColumns[0] = nextVideoColumns
@@ -757,7 +803,18 @@
             previousTimestamp = timestamp
 
             video()
-            canvasContext.putImageData(videoColorsImageData, 0, 0)
+
+            const totalPixels = nextVideoRows * nextVideoColumns
+            let target = 0
+
+            for (let i = 0; i < totalPixels; i++) {
+              videoUint8Array[target++] = videoReds[i] * 255
+              videoUint8Array[target++] = videoGreens[i] * 255
+              videoUint8Array[target++] = videoBlues[i] * 255
+              target++
+            }
+
+            canvasContext.putImageData(videoImageData, 0, 0)
 
             if (!canvasVisible) {
               canvasElement.style.visibility = 'visible'

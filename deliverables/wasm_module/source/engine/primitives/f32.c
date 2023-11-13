@@ -120,6 +120,60 @@ void multiply_f32_f32s(
   }
 }
 
+void multiply_add_f32s_f32s_f32s(
+    const f32 *const multipliers,
+    const f32 *const multiplicands,
+    const f32 *const addends,
+    f32 *const results,
+    const quantity quantity)
+{
+  for (index index = 0; index < quantity; index++)
+  {
+    results[index] = multipliers[index] * multiplicands[index] + addends[index];
+  }
+}
+
+void multiply_add_f32s_f32s_f32(
+    const f32 *const multipliers,
+    const f32 *const multiplicands,
+    const f32 addend,
+    f32 *const results,
+    const quantity quantity)
+{
+  for (index index = 0; index < quantity; index++)
+  {
+    results[index] = multipliers[index] * multiplicands[index] + addend;
+  }
+}
+
+void multiply_add_f32s_f32_f32s(
+    const f32 *const multipliers,
+    const f32 multiplicand,
+    const f32 *const addends,
+    f32 *const results,
+    const quantity quantity)
+{
+  for (index index = 0; index < quantity; index++)
+  {
+    results[index] = multipliers[index] * multiplicand + addends[index];
+  }
+}
+
+void multiply_add_f32s_f32_f32(
+    const f32 *const multipliers,
+    const f32 multiplicand,
+    const f32 addend,
+    f32 *const results,
+    const quantity quantity)
+{
+  for (index index = 0; index < quantity; index++)
+  {
+    results[index] = multipliers[index] * multiplicand + addend;
+  }
+}
+
+// TODO: alignment?
+
 f32 sum_f32s(
     const f32 *const addends,
     const quantity quantity)
@@ -132,4 +186,18 @@ f32 sum_f32s(
   }
 
   return sum;
+}
+
+f32 absolute_f32(const f32 real)
+{
+  return real >= 0.0f ? real : -real;
+}
+
+f32 linearly_interpolate_f32_f32_f32(
+    const f32 start,
+    const f32 end,
+    const f32 progress,
+    const f32 inverse_progress)
+{
+  return start * inverse_progress + end * progress;
 }

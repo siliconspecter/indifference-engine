@@ -6,7 +6,6 @@
 
 #include "../../primitives/s32.h"
 #include "../../primitives/f32.h"
-#include "../../video/color.h"
 #include "../../../game/project_settings/video_settings.h"
 
 /**
@@ -20,13 +19,40 @@ extern s32 video_rows;
 extern s32 video_columns;
 
 /**
- * The video output buffer, running from left to right, then top to bottom.
+ * The intensity of the red channel of each pixel within the video output
+ * buffer, row-major.
+ * @remark 0 is dark and 1 is bright.  The hosting runtime may clamp values to
+ *         this range.
  */
-extern color video_colors[MAXIMUM_VIDEO_ROWS * MAXIMUM_VIDEO_COLUMNS];
+extern f32 video_reds[MAXIMUM_VIDEO_ROWS * MAXIMUM_VIDEO_COLUMNS];
 
 /**
- * The depth buffer, running from left to right, then top to bottom, where -1
- * is near and 1 is far, non-linear.
+ * The intensity of the green channel of each pixel within the video output
+ * buffer, row-major.
+ * @remark 0 is dark and 1 is bright.  The hosting runtime may clamp values to
+ *         this range.
+ */
+extern f32 video_greens[MAXIMUM_VIDEO_ROWS * MAXIMUM_VIDEO_COLUMNS];
+
+/**
+ * The intensity of the blue channel of each pixel within the video output
+ * buffer, row-major.
+ * @remark 0 is dark and 1 is bright.  The hosting runtime may clamp values to
+ *         this range.
+ */
+extern f32 video_blues[MAXIMUM_VIDEO_ROWS * MAXIMUM_VIDEO_COLUMNS];
+
+/**
+ * The opacity of each pixel within the video output buffer, row-major.
+ * @remark 0 is transparent and 1 is opaque.  Behavior is undefined outside of
+ *         this range.  It is unlikely that the hosting runtime will use this
+ *         buffer.
+ */
+extern f32 video_opacities[MAXIMUM_VIDEO_ROWS * MAXIMUM_VIDEO_COLUMNS];
+
+/**
+ * The depth buffer, row-major, where -1 is near and 1 is far, non-linear.
+ * @remark It is unlikely that the hosting runtime will use this buffer.
  */
 extern f32 video_depths[MAXIMUM_VIDEO_ROWS * MAXIMUM_VIDEO_COLUMNS];
 

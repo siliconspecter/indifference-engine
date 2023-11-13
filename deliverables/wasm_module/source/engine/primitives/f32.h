@@ -39,7 +39,7 @@ void copy_f32s(
 /**
  * Calculates the sums of the f32s in two memory regions.
  * @param augends The f32s to add to.
- * @param addends The f32s to add by.
+ * @param addends The f32s to add.
  * @param sums The f32s to write the results to.  May be either or both of the
  *             operands, but may not otherwise overlap with them.
  * @param quantity The number of f32s to add.
@@ -149,6 +149,74 @@ void multiply_f32_f32s(
     const quantity quantity);
 
 /**
+ * Performs a multiply then an add on each f32 in a memory region.
+ * @param multipliers The f32s to multiply.
+ * @param multiplicands The f32s to multiply by.  May be the multipliers, but
+ *                      not otherwise overlap with them.
+ * @param addends The f32s to add.  May be the other operands, but may not
+ *                otherwise overlap with them.
+ * @param results The f32s to write the results to.  May be the operands, but
+ *                may not otherwise overlap with them.
+ * @param quantity The number of f32s to multiply-add.
+ */
+void multiply_add_f32s_f32s_f32s(
+    const f32 *const multipliers,
+    const f32 *const multiplicands,
+    const f32 *const addends,
+    f32 *const results,
+    const quantity quantity);
+
+/**
+ * Performs a multiply then an add on each f32 in a memory region.
+ * @param multipliers The f32s to multiply.
+ * @param multiplicands The f32s to multiply by.  May be the multipliers, but
+ *                      not otherwise overlap with them.
+ * @param addend The f32 to add.
+ * @param results The f32s to write the results to.  May be the operands, but
+ *                may not otherwise overlap with them.
+ * @param quantity The number of f32s to multiply-add.
+ */
+void multiply_add_f32s_f32s_f32(
+    const f32 *const multipliers,
+    const f32 *const multiplicands,
+    const f32 addend,
+    f32 *const results,
+    const quantity quantity);
+
+/**
+ * Performs a multiply then an add on each f32 in a memory region.
+ * @param multipliers The f32s to multiply.
+ * @param multiplicand The f32 to multiply by.
+ * @param addends The f32s to add.  May be the multipliers, but not otherwise
+ *                overlap with them.
+ * @param results The f32s to write the results to.  May be the operands, but
+ *                may not otherwise overlap with them.
+ * @param quantity The number of f32s to multiply-add.
+ */
+void multiply_add_f32s_f32_f32s(
+    const f32 *const multipliers,
+    const f32 multiplicand,
+    const f32 *const addends,
+    f32 *const results,
+    const quantity quantity);
+
+/**
+ * Performs a multiply then an add on each f32 in a memory region.
+ * @param multipliers The f32s to multiply.
+ * @param multiplicand The f32 to multiply by.
+ * @param addend The f32 to add.
+ * @param results The f32s to write the results to.  May be the multipliers,
+ *                but may not otherwise overlap with them.
+ * @param quantity The number of f32s to multiply-add.
+ */
+void multiply_add_f32s_f32_f32(
+    const f32 *const multipliers,
+    const f32 multiplicand,
+    const f32 addend,
+    f32 *const results,
+    const quantity quantity);
+
+/**
  * Calculates the sum of the f32s in a memory region.
  * @param addends The f32s to sum.
  * @param quantity The number of f32s to sum.
@@ -157,5 +225,26 @@ void multiply_f32_f32s(
 f32 sum_f32s(
     const f32 *const addends,
     const quantity quantity);
+
+/**
+ * Calculates the absolute of a f32.
+ * @param real The value of which to calculate the absolute.
+ * @return The absolute of the given value.
+ */
+f32 absolute_f32(const f32 real);
+
+/**
+ * Linearly interpolates between two f32s.
+ * @param start The f32 to linearly interpolate from.
+ * @param end The f32 to linearly interpolate to.
+ * @param progress When 0, "start", when 1, "end".
+ * @param inverse_progress 1 - "progress".
+ * @return The linearly interpolated f32.
+ */
+f32 linearly_interpolate_f32_f32_f32(
+    const f32 start,
+    const f32 end,
+    const f32 progress,
+    const f32 inverse_progress);
 
 #endif

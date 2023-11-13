@@ -9,7 +9,6 @@
 #include "../../primitives/index.h"
 #include "../../math/matrix.h"
 #include "../../../game/project_settings/limits.h"
-#include "../../video/color.h"
 
 /**
  * Creates a new camera component as a direct child of an entity.
@@ -259,11 +258,36 @@ extern matrix camera_component_view_projection;
 extern matrix camera_component_inverse_view_projection;
 
 /**
- * The start of the color data held by the current camera component's viewport.
+ * The start of the red values in the video output buffer held by the current
+ * camera component's viewport.
  * @remark Content is undefined except when rendering a specific camera
  *         component.  Do NOT re-assign.
  */
-extern color *camera_component_colors;
+extern f32 *camera_component_reds;
+
+/**
+ * The start of the green values in the video output buffer held by the current
+ * camera component's viewport.
+ * @remark Content is undefined except when rendering a specific camera
+ *         component.  Do NOT re-assign.
+ */
+extern f32 *camera_component_greens;
+
+/**
+ * The start of the blue values in the video output buffer held by the current
+ * camera component's viewport.
+ * @remark Content is undefined except when rendering a specific camera
+ *         component.  Do NOT re-assign.
+ */
+extern f32 *camera_component_blues;
+
+/**
+ * The start of the opacity values in the video output buffer held by the
+ * current camera component's viewport.
+ * @remark Content is undefined except when rendering a specific camera
+ *         component.  Do NOT re-assign.
+ */
+extern f32 *camera_component_opacities;
 
 /**
  * The start of the depth data held by the current camera component's viewport.

@@ -72,10 +72,3 @@ API are documented through comments and are listed here for quick reference.
 | @ref deliverables/wasm_module/source/engine/scenes/components/sound_component.h                     | Components which play sounds.                                                                  |
 | @ref deliverables/wasm_module/source/engine/scenes/components/tick_component.h                      | Components which execute callbacks on each tick.                                               |
 | @ref deliverables/wasm_module/source/engine/scenes/components/timer_component.h                     | Components which execute callbacks after fixed numbers of ticks.                               |
-
-## Video
-
-| Header                                                          | Description                                       |
-| --------------------------------------------------------------- | ------------------------------------------------- |
-| @ref deliverables/wasm_module/source/engine/video/color.h       | 32-bits-per-pixel red-green-blue-opacity-colors.  |
-| @ref deliverables/wasm_module/source/engine/video/float_color.h | 128-bits-per-pixel red-green-blue-opacity-colors. |

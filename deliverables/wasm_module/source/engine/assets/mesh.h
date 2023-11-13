@@ -7,7 +7,6 @@
 #include "../primitives/f32.h"
 #include "../primitives/s32.h"
 #include "../math/vector.h"
-#include "../video/color.h"
 #include "image.h"
 
 /**
@@ -56,10 +55,32 @@ typedef struct
   const f32 *const texture_coordinates;
 
   /**
-   * The colors of the vertices of the triangles in the mesh.  There are three
-   * for each triangle.
+   * The intensity of the red channel of each vertex of each triangle within the
+   * mesh.
+   * @remark 0 is dark and 1 is bright.  Values may exceed this range.
    */
-  const color *const colors;
+  const f32 *const reds;
+
+  /**
+   * The intensity of the green channel of each vertex of each triangle within
+   * the mesh.
+   * @remark 0 is dark and 1 is bright.  Values may exceed this range.
+   */
+  const f32 *const greens;
+
+  /**
+   * The intensity of the blue channel of each vertex of each triangle within
+   * the mesh.
+   * @remark 0 is dark and 1 is bright.  Values may exceed this range.
+   */
+  const f32 *const blues;
+
+  /**
+   * The opacity of each vertex of each triangle within the mesh.
+   * @remark 0 is transparent and 1 is opaque.  Behavior is undefined outside of
+   *         this range.
+   */
+  const f32 *const opacities;
 } mesh;
 
 /**

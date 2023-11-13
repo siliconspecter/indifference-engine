@@ -5,7 +5,7 @@
 #define IMAGE_H
 
 #include "../primitives/s32.h"
-#include "../video/color.h"
+#include "../primitives/f32.h"
 #include "image.h"
 
 /**
@@ -25,9 +25,31 @@ typedef struct
   const s32 columns;
 
   /**
-   * The colors within the image, running from left to right then top to bottom.
+   * The intensity of the red channel of each pixel within the image, row-major.
+   * @remark 0 is dark and 1 is bright.  Values may exceed this range.
    */
-  const color *const colors;
+  const f32 *const reds;
+
+  /**
+   * The intensity of the green channel of each pixel within the image,
+   * row-major.
+   * @remark 0 is dark and 1 is bright.  Values may exceed this range.
+   */
+  const f32 *const greens;
+
+  /**
+   * The intensity of the blue channel of each pixel within the image,
+   * row-major.
+   * @remark 0 is dark and 1 is bright.  Values may exceed this range.
+   */
+  const f32 *const blues;
+
+  /**
+   * The opacity of each pixel within the image, row-major.
+   * @remark 0 is transparent and 1 is opaque.  Behavior is undefined outside of
+   *         this range.
+   */
+  const f32 *const opacities;
 } image;
 
 /**

@@ -16,7 +16,7 @@
 #include "math/vector.h"
 
 #include "assets/font.h"
-#include "assets/image.h"
+#include "assets/texture.h"
 #include "assets/mesh.h"
 #include "assets/navigation_mesh.h"
 #include "assets/song.h"

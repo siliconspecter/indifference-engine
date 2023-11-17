@@ -7,7 +7,7 @@
 #include "../primitives/f32.h"
 #include "../primitives/s32.h"
 #include "../math/vector.h"
-#include "image.h"
+#include "texture.h"
 
 /**
  * An immutable triangulated mesh with texture coordinates and vertex colors.
@@ -25,19 +25,19 @@ typedef struct
   const vector *const locations;
 
   /**
-   * The number of textures in the mesh.
+   * The number of render passes in the mesh.
    */
-  const s32 textures;
+  const s32 passes;
 
   /**
-   * The image for each texture in the mesh.
+   * The texture of each render pass in the mesh.
    */
-  image_factory *const images;
+  texture_factory *const textures;
 
   /**
-   * The number of triangles for each texture in the mesh.  The triangles in the
-   * following arrays are ordered to match, e.g. if texture A has 3 and texture
-   * B has 2, the triangles are ordered AAABB.
+   * The number of triangles for each render pass in the mesh.  The triangles in
+   * the following arrays are ordered to match, e.g. if render pass A has 3 and
+   * render pass B has 2, the triangles are ordered AAABB.
    */
   const s32 *const triangles;
 

@@ -13,7 +13,7 @@ API are documented through comments and are listed here for quick reference.
 | Header                                                               | Description                                                    |
 | -------------------------------------------------------------------- | -------------------------------------------------------------- |
 | @ref deliverables/wasm_module/source/engine/assets/font.h            | Bitmap fonts.                                                  |
-| @ref deliverables/wasm_module/source/engine/assets/image.h           | Images with 32-bits-per-pixel color.                           |
+| @ref deliverables/wasm_module/source/engine/assets/texture.h         | Textures with 128-bits-per-pixel color.                        |
 | @ref deliverables/wasm_module/source/engine/assets/mesh.h            | Triangulated meshes with texture coordinates and vertex color. |
 | @ref deliverables/wasm_module/source/engine/assets/navigation_mesh.h | Surfaces used for collision and navigation.                    |
 | @ref deliverables/wasm_module/source/engine/assets/song.h            | Pieces of tracker music.                                       |

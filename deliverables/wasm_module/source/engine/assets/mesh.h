@@ -56,22 +56,19 @@ typedef struct
 
   /**
    * The intensity of the red channel of each vertex of each triangle within the
-   * mesh.
-   * @remark 0 is dark and 1 is bright.  Values may exceed this range.
+   * mesh, in candela per square meter.
    */
   const f32 *const reds;
 
   /**
    * The intensity of the green channel of each vertex of each triangle within
-   * the mesh.
-   * @remark 0 is dark and 1 is bright.  Values may exceed this range.
+   * the mesh, in candela per square meter.
    */
   const f32 *const greens;
 
   /**
    * The intensity of the blue channel of each vertex of each triangle within
-   * the mesh.
-   * @remark 0 is dark and 1 is bright.  Values may exceed this range.
+   * the mesh, in candela per square meter.
    */
   const f32 *const blues;
 

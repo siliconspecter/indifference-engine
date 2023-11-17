@@ -808,9 +808,9 @@
             let target = 0
 
             for (let i = 0; i < totalPixels; i++) {
-              videoUint8Array[target++] = videoReds[i] * 255
-              videoUint8Array[target++] = videoGreens[i] * 255
-              videoUint8Array[target++] = videoBlues[i] * 255
+              videoUint8Array[target++] = Math.pow(Math.max(0, Math.min(1, videoReds[i] * 0.0470366886171214)), 0.4545454545454545) * 255
+              videoUint8Array[target++] = Math.pow(Math.max(0, Math.min(1, videoGreens[i] * 0.0139821029082774)), 0.4545454545454545) * 255
+              videoUint8Array[target++] = Math.pow(Math.max(0, Math.min(1, videoBlues[i] * 0.1385041551246537)), 0.4545454545454545) * 255
               target++
             }
 

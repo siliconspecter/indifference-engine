@@ -20,25 +20,19 @@ extern s32 video_columns;
 
 /**
  * The intensity of the red channel of each pixel within the video output
- * buffer, row-major.
- * @remark 0 is dark and 1 is bright.  The hosting runtime may clamp values to
- *         this range.
+ * buffer in candela per square meter, row-major.
  */
 extern f32 video_reds[MAXIMUM_VIDEO_ROWS * MAXIMUM_VIDEO_COLUMNS];
 
 /**
  * The intensity of the green channel of each pixel within the video output
- * buffer, row-major.
- * @remark 0 is dark and 1 is bright.  The hosting runtime may clamp values to
- *         this range.
+ * buffer in candela per square meter, row-major.
  */
 extern f32 video_greens[MAXIMUM_VIDEO_ROWS * MAXIMUM_VIDEO_COLUMNS];
 
 /**
  * The intensity of the blue channel of each pixel within the video output
- * buffer, row-major.
- * @remark 0 is dark and 1 is bright.  The hosting runtime may clamp values to
- *         this range.
+ * buffer in candela per square meter, row-major.
  */
 extern f32 video_blues[MAXIMUM_VIDEO_ROWS * MAXIMUM_VIDEO_COLUMNS];
 

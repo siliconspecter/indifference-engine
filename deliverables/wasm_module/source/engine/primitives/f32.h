@@ -37,6 +37,17 @@ void copy_f32s(
     const quantity quantity);
 
 /**
+ * Swaps f32s between two memory regions.
+ * @param a The first memory region to swap.
+ * @param b The second memory region to swap.
+ * @param quantity The number of f32s to swap.
+ */
+void swap_f32s(
+    f32 *const a,
+    f32 *const b,
+    const quantity quantity);
+
+/**
  * Calculates the sums of the f32s in two memory regions.
  * @param augends The f32s to add to.
  * @param addends The f32s to add.

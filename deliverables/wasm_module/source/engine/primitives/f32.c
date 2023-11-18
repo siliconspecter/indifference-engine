@@ -24,6 +24,19 @@ void copy_f32s(
   }
 }
 
+void swap_f32s(
+    f32 *const a,
+    f32 *const b,
+    const quantity quantity)
+{
+  for (index index = 0; index < quantity; index++)
+  {
+    const f32 temp = a[index];
+    a[index] = b[index];
+    b[index] = temp;
+  }
+}
+
 void add_f32s_f32s(
     const f32 *const augends,
     const f32 *const addends,

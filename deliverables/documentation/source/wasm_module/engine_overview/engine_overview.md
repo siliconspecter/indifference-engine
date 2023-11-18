@@ -341,7 +341,17 @@ TODO
 
 ### *.tga files
 
-TODO
+Files with an extension of ".tga" will be automatically converted into texture
+factories which can be used directly within your C code.
+
+For example, the file name `source/game/path/to/your_file.tga` can be imported
+using the following:
+
+```c
+extern const texture * game_path_to_your_file();
+```
+
+At present, this only supports RLE-compressed palletized TGA files.
 
 ### *.obj files
 

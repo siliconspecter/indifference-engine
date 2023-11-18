@@ -348,7 +348,7 @@ For example, the file name `source/game/path/to/your_file.tga` can be imported
 using the following:
 
 ```c
-extern const texture * game_path_to_your_file();
+const texture * game_path_to_your_file();
 ```
 
 At present, this only supports RLE-compressed palletized TGA files.

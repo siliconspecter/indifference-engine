@@ -5,7 +5,8 @@
 #define MESH_H
 
 #include "../primitives/f32.h"
-#include "../primitives/s32.h"
+#include "../primitives/index.h"
+#include "../primitives/quantity.h"
 #include "../math/vector.h"
 #include "texture.h"
 
@@ -17,7 +18,7 @@ typedef struct
   /**
    * The number of vertices in the mesh.
    */
-  const s32 vertices;
+  const quantity vertices;
 
   /**
    * The locations of the vertices in the mesh.
@@ -27,7 +28,7 @@ typedef struct
   /**
    * The number of render passes in the mesh.
    */
-  const s32 passes;
+  const quantity passes;
 
   /**
    * The texture of each render pass in the mesh.
@@ -39,13 +40,13 @@ typedef struct
    * the following arrays are ordered to match, e.g. if render pass A has 3 and
    * render pass B has 2, the triangles are ordered AAABB.
    */
-  const s32 *const triangles;
+  const quantity *const triangles;
 
   /**
    * The location indices of the triangles in the mesh.  There are three for
    * each triangle.
    */
-  const s32 *const indices;
+  const index *const indices;
 
   /**
    * The texture coordinates of the vertices of the triangles in the mesh.

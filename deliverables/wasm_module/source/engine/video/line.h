@@ -3,7 +3,6 @@
 #define LINE_H
 
 #include "../primitives/index.h"
-#include "../primitives/s32.h"
 #include "../primitives/f32.h"
 #include "../math/relational.h"
 

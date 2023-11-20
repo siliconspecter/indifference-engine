@@ -5,7 +5,7 @@
 #define TIMER_COMPONENT_H
 
 #include "../../primitives/index.h"
-#include "../../primitives/s32.h"
+#include "../../primitives/quantity.h"
 #include "../../miscellaneous.h"
 
 /**
@@ -53,7 +53,7 @@ index timer_component(
     const index meta,
     timer_component_ticked *const on_tick,
     timer_component_expired *const on_expiry,
-    const s32 ticks);
+    const quantity ticks);
 
 /**
  * Creates a new timer component as a direct child of another component.
@@ -82,6 +82,6 @@ component_handle timer_sub_component(
     const index meta,
     timer_component_ticked *const on_tick,
     timer_component_expired *const on_expiry,
-    const s32 ticks);
+    const quantity ticks);
 
 #endif

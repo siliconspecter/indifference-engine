@@ -4,7 +4,7 @@
 
 #define TEXTURE_H
 
-#include "../primitives/s32.h"
+#include "../primitives/quantity.h"
 #include "../primitives/f32.h"
 #include "texture.h"
 
@@ -17,12 +17,12 @@ typedef struct
   /**
    * The height of the texture, in pixel rows.
    */
-  const s32 rows;
+  const quantity rows;
 
   /**
    * The width of the texture, in pixel columns.
    */
-  const s32 columns;
+  const quantity columns;
 
   /**
    * The intensity of the red channel of each pixel within the texture,

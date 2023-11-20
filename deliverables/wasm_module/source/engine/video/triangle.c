@@ -63,10 +63,10 @@ static void sort_top_to_bottom(
 }
 
 static void render_opaque_row(
-    const s32 texture_rows,
-    const s32 texture_rows_minus_one,
-    const s32 texture_columns,
-    const s32 texture_columns_minus_one,
+    const quantity texture_rows,
+    const quantity texture_rows_minus_one,
+    const quantity texture_columns,
+    const quantity texture_columns_minus_one,
     const f32 *const texture_reds,
     const f32 *const texture_greens,
     const f32 *const texture_blues,
@@ -138,10 +138,10 @@ static void render_opaque_row(
 }
 
 void render_opaque_triangle(
-    const s32 texture_rows,
-    const s32 texture_rows_minus_one,
-    const s32 texture_columns,
-    const s32 texture_columns_minus_one,
+    const quantity texture_rows,
+    const quantity texture_rows_minus_one,
+    const quantity texture_columns,
+    const quantity texture_columns_minus_one,
     const f32 *const texture_reds,
     const f32 *const texture_greens,
     const f32 *const texture_blues,

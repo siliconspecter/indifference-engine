@@ -2,7 +2,7 @@
 
 #define TRIANGLE_H
 
-#include "../primitives/s32.h"
+#include "../primitives/quantity.h"
 #include "../primitives/f32.h"
 
 /**
@@ -88,10 +88,10 @@
  *               vertex, in candela per square meter.
  */
 void render_opaque_triangle(
-    const s32 texture_rows,
-    const s32 texture_rows_minus_one,
-    const s32 texture_columns,
-    const s32 texture_columns_minus_one,
+    const quantity texture_rows,
+    const quantity texture_rows_minus_one,
+    const quantity texture_columns,
+    const quantity texture_columns_minus_one,
     const f32 *const texture_reds,
     const f32 *const texture_greens,
     const f32 *const texture_blues,

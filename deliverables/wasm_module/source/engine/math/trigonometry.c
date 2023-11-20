@@ -1,5 +1,6 @@
 #include "../primitives/f32.h"
-#include "../primitives/s32.h"
+#include "../primitives/quantity.h"
+#include "../primitives/index.h"
 #include "trigonometry.h"
 
 static const f32 sine_table[] = {
@@ -266,9 +267,9 @@ static const f32 sine_table[] = {
 
 f32 sine(f32 radians)
 {
-  const s32 period = 1024;
+  const quantity period = 1024;
   const f32 unrounded = radians * (period / PI);
-  s32 rounded = unrounded;
+  index rounded = unrounded;
 
   if (rounded <= unrounded)
   {
@@ -299,9 +300,9 @@ f32 sine(f32 radians)
 
 f32 cosine(f32 radians)
 {
-  const s32 period = 1024;
+  const quantity period = 1024;
   const f32 unrounded = radians * (period / PI);
-  s32 rounded = unrounded;
+  index rounded = unrounded;
 
   if (rounded <= unrounded)
   {

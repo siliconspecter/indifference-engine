@@ -1,6 +1,7 @@
 #include "../entity.h"
 #include "component.h"
 #include "../../primitives/f32.h"
+#include "../../primitives/quantity.h"
 #include "../../primitives/index.h"
 #include "../../../game/project_settings/limits.h"
 #include "camera_component.h"
@@ -41,8 +42,8 @@ f32 *camera_component_greens;
 f32 *camera_component_blues;
 f32 *camera_component_opacities;
 f32 *camera_component_depths;
-s32 camera_component_rows;
-s32 camera_component_columns;
+quantity camera_component_rows;
+quantity camera_component_columns;
 f32 camera_component_clip_to_video_row_coefficient;
 f32 camera_component_clip_to_video_row_offset;
 f32 camera_component_clip_to_video_column_coefficient;
@@ -112,20 +113,20 @@ void render_camera_components(render_camera_component *const on_render)
       if (transform != NULL)
       {
         const f32 top = tick_progress * next_camera_component_tops[camera] + inverse_tick_progress * previous_camera_component_tops[camera];
-        const s32 top_rows = top * clip_to_video_row_coefficient + clip_to_video_row_offset;
-        const s32 top_rows_clamped = CLAMP(top_rows, 0, video_rows);
+        const quantity top_rows = top * clip_to_video_row_coefficient + clip_to_video_row_offset;
+        const quantity top_rows_clamped = CLAMP(top_rows, 0, video_rows);
 
         const f32 bottom = tick_progress * next_camera_component_bottoms[camera] + inverse_tick_progress * previous_camera_component_bottoms[camera];
-        const s32 bottom_rows = bottom * clip_to_video_row_coefficient + clip_to_video_row_offset;
-        const s32 bottom_rows_clamped = CLAMP(bottom_rows, 0, video_rows);
+        const quantity bottom_rows = bottom * clip_to_video_row_coefficient + clip_to_video_row_offset;
+        const quantity bottom_rows_clamped = CLAMP(bottom_rows, 0, video_rows);
 
         const f32 left = tick_progress * next_camera_component_lefts[camera] + inverse_tick_progress * previous_camera_component_lefts[camera];
-        const s32 left_columns = left * clip_to_video_column_coefficient + clip_to_video_column_offset;
-        const s32 left_columns_clamped = CLAMP(left_columns, 0, video_columns);
+        const quantity left_columns = left * clip_to_video_column_coefficient + clip_to_video_column_offset;
+        const quantity left_columns_clamped = CLAMP(left_columns, 0, video_columns);
 
         const f32 right = tick_progress * next_camera_component_rights[camera] + inverse_tick_progress * previous_camera_component_rights[camera];
-        const s32 right_columns = right * clip_to_video_column_coefficient + clip_to_video_column_offset;
-        const s32 right_columns_clamped = CLAMP(right_columns, 0, video_columns);
+        const quantity right_columns = right * clip_to_video_column_coefficient + clip_to_video_column_offset;
+        const quantity right_columns_clamped = CLAMP(right_columns, 0, video_columns);
 
         if (left_columns_clamped < right_columns_clamped && top_rows_clamped < bottom_rows_clamped)
         {

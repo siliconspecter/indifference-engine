@@ -1,12 +1,13 @@
 #include "video.h"
 #include "../../primitives/s32.h"
 #include "../../primitives/f32.h"
+#include "../../primitives/quantity.h"
 #include "../../../game/project_settings/video_settings.h"
 #include "../export.h"
 
-s32 video_rows ALIGN(s32) = MAXIMUM_VIDEO_ROWS;
+quantity video_rows ALIGN(s32) = MAXIMUM_VIDEO_ROWS;
 
-s32 video_columns ALIGN(s32) = MAXIMUM_VIDEO_COLUMNS;
+quantity video_columns ALIGN(s32) = MAXIMUM_VIDEO_COLUMNS;
 
 f32 video_reds[MAXIMUM_VIDEO_ROWS * MAXIMUM_VIDEO_COLUMNS] ALIGN(f32);
 f32 video_greens[MAXIMUM_VIDEO_ROWS * MAXIMUM_VIDEO_COLUMNS] ALIGN(f32);

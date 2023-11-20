@@ -4,19 +4,19 @@
 
 #define VIDEO_H
 
-#include "../../primitives/s32.h"
+#include "../../primitives/quantity.h"
 #include "../../primitives/f32.h"
 #include "../../../game/project_settings/video_settings.h"
 
 /**
  * The height of the video buffer, in pixel rows.
  */
-extern s32 video_rows;
+extern quantity video_rows;
 
 /**
  * The width of the video buffer, in pixel columns.
  */
-extern s32 video_columns;
+extern quantity video_columns;
 
 /**
  * The intensity of the red channel of each pixel within the video output

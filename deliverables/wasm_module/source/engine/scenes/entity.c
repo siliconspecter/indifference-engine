@@ -68,7 +68,7 @@ static void prepare_entity_column_for_video(
     const f32 *const previous,
     const f32 *const next,
     f32 *const interpolated,
-    const s32 total)
+    const quantity total)
 {
   for (index index = 0; index < total; index++)
   {
@@ -80,7 +80,7 @@ void prepare_entities_for_video()
 {
   if (first_occupied != INDEX_NONE)
   {
-    const s32 total = (last_occupied - first_occupied + 1) * 16;
+    const quantity total = (last_occupied - first_occupied + 1) * 16;
 
     prepare_entity_column_for_video(
         &previous_entity_transforms[first_occupied][0][0],

@@ -1,5 +1,6 @@
 #include "../export.h"
 #include "../../primitives/s32.h"
+#include "../../primitives/quantity.h"
 #include "../../primitives/index.h"
 #include "../../../game/project_settings/timing_settings.h"
 #include "../../../game/project_settings/video_settings.h"
@@ -12,10 +13,10 @@
 #include "../../miscellaneous.h"
 #include "../../scenes/scene.h"
 
-const s32 ticks_per_second ALIGN(s32) = TICKS_PER_SECOND;
-const s32 maximum_video_rows ALIGN(s32) = MAXIMUM_VIDEO_ROWS;
-const s32 safe_area_rows ALIGN(s32) = SAFE_AREA_ROWS;
-const s32 safe_area_columns ALIGN(s32) = SAFE_AREA_COLUMNS;
+const quantity ticks_per_second ALIGN(s32) = TICKS_PER_SECOND;
+const quantity maximum_video_rows ALIGN(s32) = MAXIMUM_VIDEO_ROWS;
+const quantity safe_area_rows ALIGN(s32) = SAFE_AREA_ROWS;
+const quantity safe_area_columns ALIGN(s32) = SAFE_AREA_COLUMNS;
 
 #define BUFFER_LIST(item)                                                                                                   \
   item(1073741824, ticks_per_second)                                                                                        \
@@ -46,10 +47,10 @@ const s32 safe_area_columns ALIGN(s32) = SAFE_AREA_COLUMNS;
 #define BUFFER_NULL(identifier, data) NULL,
 
 void *buffer_pointer_values[] = {BUFFER_LIST(BUFFER_NULL)};
-s32 buffer_size_values[sizeof(buffer_pointer_values) / sizeof(buffer_pointer_values[0])];
+quantity buffer_size_values[sizeof(buffer_pointer_values) / sizeof(buffer_pointer_values[0])];
 s32 buffer_identifier_values[sizeof(buffer_pointer_values) / sizeof(buffer_pointer_values[0])];
 
-EXPORT s32 buffer_count()
+EXPORT quantity buffer_count()
 {
   return sizeof(buffer_pointer_values) / sizeof(buffer_pointer_values[0]);
 }
@@ -62,7 +63,7 @@ EXPORT void **buffer_pointers()
   return buffer_pointer_values;
 }
 
-EXPORT s32 *buffer_sizes()
+EXPORT quantity *buffer_sizes()
 {
   index buffer = 0;
 #define BUFFER_SIZE(identifier, data) buffer_size_values[buffer++] = sizeof(data);

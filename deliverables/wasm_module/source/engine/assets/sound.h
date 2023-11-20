@@ -5,7 +5,7 @@
 #define SOUND_H
 
 #include "../primitives/f32.h"
-#include "../primitives/s32.h"
+#include "../primitives/quantity.h"
 #include "../primitives/index.h"
 
 /**
@@ -21,7 +21,7 @@ typedef struct
   /**
    * The length of the sound, in samples.
    */
-  const s32 length;
+  const quantity length;
 
   /**
    * When the sound plays to the end, this specifies the index of the sample to

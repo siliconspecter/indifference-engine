@@ -5,6 +5,7 @@
 #define CAMERA_COMPONENT_H
 
 #include "component.h"
+#include "../../primitives/quantity.h"
 #include "../../primitives/f32.h"
 #include "../../primitives/index.h"
 #include "../../math/matrix.h"
@@ -301,14 +302,14 @@ extern f32 *camera_component_depths;
  * @remark Content is undefined except when rendering a specific camera
  *         component.  Do NOT re-assign.
  */
-extern s32 camera_component_rows;
+extern quantity camera_component_rows;
 
 /**
  * The width of the current camera component's viewport, in pixel columns.
  * @remark Content is undefined except when rendering a specific camera
  *         component.  Do NOT re-assign.
  */
-extern s32 camera_component_columns;
+extern quantity camera_component_columns;
 
 /**
  * The coefficient to multiply by when transforming from the current camera

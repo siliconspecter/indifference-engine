@@ -2,6 +2,7 @@
 #include "../primitives/s32.h"
 #include "../primitives/f32.h"
 #include "../math/relational.h"
+#include "../math/float.h"
 #include "../scenes/components/camera_component.h"
 #include "line.h"
 #include "../exports/buffers/video.h"
@@ -20,11 +21,11 @@ void render_opaque_line(
     const f32 end_column,
     const f32 end_depth)
 {
-  const s32 rounded_start_row = start_row;
-  const s32 rounded_start_column = start_column;
+  const s32 rounded_start_row = floor(start_row);
+  const s32 rounded_start_column = floor(start_column);
 
-  const s32 rounded_end_row = end_row;
-  const s32 rounded_end_column = end_column;
+  const s32 rounded_end_row = floor(end_row);
+  const s32 rounded_end_column = floor(end_column);
 
   const s32 row_delta = rounded_end_row - rounded_start_row;
   const s32 absolute_row_delta = absolute_f32(row_delta);

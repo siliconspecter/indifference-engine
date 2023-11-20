@@ -13,7 +13,7 @@ TOOL_CFLAGS = -Wall -Wextra -Werror -std=c99 -O3
 C_FILES = $(shell find source -type f -iname "*.c" -not -path "source/tools/*")
 H_FILES = $(shell find source -type f -iname "*.h")
 TGA_FILES = $(shell find source -type f -iname "*.tga")
-TGA2C_H_FILES = source/engine/primitives/s32.h source/engine/primitives/f32.h source/engine/assets/texture.h
+TGA2C_H_FILES = source/engine/primitives/f32.h source/engine/assets/texture.h
 PRODUCTION_O_FILES = $(patsubst source/%.c,ephemeral/production/objects/source/%.o,$(C_FILES)) $(patsubst source/%.tga,ephemeral/production/objects/ephemeral/tga/%.o,$(TGA_FILES))
 DEVELOPMENT_O_FILES = $(patsubst ephemeral/production/%,ephemeral/development/%,$(PRODUCTION_O_FILES))
 TOTAL_REBUILD_FILES = makefile $(H_FILES)

@@ -1,7 +1,7 @@
 #include "../primitives/f32.h"
 #include "float.h"
 
-f32 ie_square_root(const f32 radicand)
+f32 square_root(const f32 radicand)
 {
   f32 root;
 

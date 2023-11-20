@@ -7,6 +7,7 @@
 #include "primitives/s32.h"
 #include "primitives/f32.h"
 #include "primitives/index.h"
+#include "primitives/quantity.h"
 
 #include "math/culled_by.h"
 #include "math/float.h"

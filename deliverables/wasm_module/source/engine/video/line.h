@@ -1,3 +1,7 @@
+#ifndef LINE_H
+
+#define LINE_H
+
 #include "../primitives/index.h"
 #include "../primitives/s32.h"
 #include "../primitives/f32.h"
@@ -93,3 +97,5 @@ void render_transparent_line(
     const f32 end_row,
     const f32 end_column,
     const f32 end_depth);
+
+#endif

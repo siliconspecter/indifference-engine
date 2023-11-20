@@ -33,4 +33,11 @@
  */
 f32 square_root(const f32 radicand);
 
+/**
+ * Rounds an integer towards negative infinity.
+ * @param x The value to round towards negative infinity.
+ * @return The value rounded towards negative infinity.
+ */
+f32 floor(const f32 x);
+
 #endif

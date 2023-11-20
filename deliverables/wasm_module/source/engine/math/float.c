@@ -11,3 +11,14 @@ f32 square_root(const f32 radicand)
 
   return root;
 }
+
+f32 floor(const f32 x)
+{
+  f32 floor;
+
+  __asm__("local.get %1; f32.floor; local.set %0"
+          : "=r"(floor)
+          : "r"(x));
+
+  return floor;
+}

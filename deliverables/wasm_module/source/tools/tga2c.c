@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdarg.h>
+#include <math.h>
 
 #ifdef __MINGW32__
 #include <fcntl.h>
@@ -255,9 +256,9 @@ int main(int argc, char **argv)
             exit(1);
           }
 
-          const float red = ((float)color_map_data[offset + 2]) / 255.0f;
-          greens[output_pixels] = ((float)color_map_data[offset + 1]) / 255.0f;
-          blues[output_pixels] = ((float)color_map_data[offset]) / 255.0f;
+          const float red = pow(((float)color_map_data[offset + 2]) / 255.0f, 2.2f);
+          greens[output_pixels] = pow(((float)color_map_data[offset + 1]) / 255.0f, 2.2f);
+          blues[output_pixels] = pow(((float)color_map_data[offset]) / 255.0f, 2.2f);
           opacities[output_pixels] = ((float)color_map_data[offset + 3]) / 255.0f;
 
           write_stdout("Failed to write a red intensity.", "%s%s%f", output_pixels ? "," : "", output_pixels % image_specification_width ? "" : "\n    ", red);
@@ -282,9 +283,9 @@ int main(int argc, char **argv)
       {
         if (output_pixels < image_specification_width * image_specification_height)
         {
-          const float red = ((float)color_map_data[offset + 2]) / 255.0f;
-          greens[output_pixels] = ((float)color_map_data[offset + 1]) / 255.0f;
-          blues[output_pixels] = ((float)color_map_data[offset]) / 255.0f;
+          const float red = pow(((float)color_map_data[offset + 2]) / 255.0f, 2.2f);
+          greens[output_pixels] = pow(((float)color_map_data[offset + 1]) / 255.0f, 2.2f);
+          blues[output_pixels] = pow(((float)color_map_data[offset]) / 255.0f, 2.2f);
           opacities[output_pixels] = ((float)color_map_data[offset + 3]) / 255.0f;
 
           write_stdout("Failed to write a red intensity.", "%s%s%f", output_pixels ? ", " : "", output_pixels % image_specification_width ? "" : "\n    ", red);

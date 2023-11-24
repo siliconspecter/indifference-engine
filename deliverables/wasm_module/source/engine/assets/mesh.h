@@ -33,7 +33,7 @@ typedef struct
   /**
    * The texture of each render pass in the mesh.
    */
-  texture_factory *const textures;
+  texture_factory *const *const textures;
 
   /**
    * The number of triangles for each render pass in the mesh.  The triangles in

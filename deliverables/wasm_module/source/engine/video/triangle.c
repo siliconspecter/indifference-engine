@@ -126,6 +126,7 @@ static void render_opaque_row(
 
       if (opacity >= 0.5f)
       {
+        camera_component_depths[camera_index] = source_depth;
         camera_component_reds[camera_index] = accumulators[4] * texture_reds[texture_index];
         camera_component_greens[camera_index] = accumulators[5] * texture_greens[texture_index];
         camera_component_blues[camera_index] = accumulators[6] * texture_blues[texture_index];

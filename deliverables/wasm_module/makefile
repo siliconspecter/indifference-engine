@@ -13,8 +13,10 @@ TOOL_CFLAGS = -Wall -Wextra -Werror -std=c99 -O3
 C_FILES = $(shell find source -type f -iname "*.c" -not -path "source/tools/*")
 H_FILES = $(shell find source -type f -iname "*.h")
 TGA_FILES = $(shell find source -type f -iname "*.tga")
+OBJ_FILES = $(shell find source -type f -iname "*.obj")
 TGA2C_H_FILES = source/engine/primitives/f32.h source/engine/assets/texture.h
-PRODUCTION_O_FILES = $(patsubst source/%.c,ephemeral/production/objects/source/%.o,$(C_FILES)) $(patsubst source/%.tga,ephemeral/production/objects/ephemeral/tga/%.o,$(TGA_FILES))
+OBJ2C_H_FILES = source/engine/primitives/f32.h source/engine/primitives/index.h source/engine/primitives/quantity.h source/engine/assets/mesh.h source/engine/assets/navigation_mesh.h source/engine/math/vector.h
+PRODUCTION_O_FILES = $(patsubst source/%.c,ephemeral/production/objects/source/%.o,$(C_FILES)) $(patsubst source/%.tga,ephemeral/production/objects/ephemeral/tga/%.o,$(TGA_FILES)) $(patsubst source/%.obj,ephemeral/production/objects/ephemeral/obj/%.o,$(OBJ_FILES))
 DEVELOPMENT_O_FILES = $(patsubst ephemeral/production/%,ephemeral/development/%,$(PRODUCTION_O_FILES))
 TOTAL_REBUILD_FILES = makefile $(H_FILES)
 
@@ -34,6 +36,12 @@ ephemeral/tools/%: source/tools/%.c makefile
 ephemeral/tga/%.c: source/%.tga ephemeral/tools/tga2c
 	mkdir -p $(dir $@)
 	ephemeral/tools/tga2c $(realpath $(TGA2C_H_FILES)) $(subst /,_,$(patsubst source/%.tga,%,$<)) < $< > $@.temp
+	mv $@.temp $@
+
+# TODO: 2 and 4 are the same
+ephemeral/obj/%.c: source/%.obj ephemeral/tools/obj2c
+	mkdir -p $(dir $@)
+	ephemeral/tools/obj2c $(realpath $(OBJ2C_H_FILES)) $(subst /,_,$(patsubst source/%/,%,$(dir $<))) $(subst /,_,$(patsubst %.obj,%,$(notdir $<))) $(dir $<) $(patsubst source_%_,%,$(subst /,_,$(dir $<))) < $< > $@.temp
 	mv $@.temp $@
 
 ephemeral/production/objects/%.o: %.c $(TOTAL_REBUILD_FILES)

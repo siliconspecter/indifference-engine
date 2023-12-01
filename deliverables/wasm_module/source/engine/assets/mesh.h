@@ -8,6 +8,7 @@
 #include "../primitives/index.h"
 #include "../primitives/quantity.h"
 #include "../math/vector.h"
+#include "../math/matrix.h"
 #include "texture.h"
 
 /**
@@ -86,5 +87,19 @@ typedef struct
  * @return The provided mesh.
  */
 typedef const mesh *(mesh_factory)();
+
+#ifndef DOXYGEN_IGNORE
+
+/**
+ * Draws an opaque mesh in the current camera component's viewport.
+ * @remark Only use when rendering video for a camera component.
+ * @param mesh The mesh to render.
+ * @param model_view_projection The model-view-projection matrix to apply.
+ */
+void render_opaque_mesh(
+    const mesh *const mesh,
+    const matrix model_view_projection);
+
+#endif
 
 #endif

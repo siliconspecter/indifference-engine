@@ -72,6 +72,7 @@ def create_material(name, texture_path):
         tex_image.image = bpy.data.images.get(texture_path) or bpy.data.images.load(
             texture_path
         )
+        tex_image.extension = "CLIP"
         tex_image.interpolation = "Closest"
         tex_image.location = (-600, -225)
 

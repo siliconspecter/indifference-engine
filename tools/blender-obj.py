@@ -25,6 +25,9 @@ from bpy_extras.io_utils import ExportHelper, ImportHelper
 def initialize_scene(context):
     context.scene.render.engine = "BLENDER_EEVEE"
 
+    # TODO color management standard
+    # TODO: render mode
+
     for window in context.window_manager.windows:
         for area in window.screen.areas:
             if area.type == "VIEW_3D":
@@ -33,15 +36,31 @@ def initialize_scene(context):
                         space.shading.type = "MATERIAL"
 
 
+def get_material_type_from_name(name):
+    if name.startswith("cutout_"):
+        return "cutout"
+    elif name.startswith("blend_"):
+        return "blend"
+    elif name.startswith("additive_"):
+        return "additive"
+    else:
+        return "opaque"
+
+
 def create_material(name, texture_path):
     output = None
+    type = get_material_type_from_name(name)
 
     for material_candidate in bpy.data.materials:
-        if material_candidate.use_nodes:
-            for node in material_candidate.node_tree.nodes:
-                if node.type == "TEX_IMAGE":
-                    if node.image is not None and node.image.filepath == texture_path:
-                        output = material_candidate
+        if get_material_type_from_name(material_candidate.name) == type:
+            if material_candidate.use_nodes:
+                for node in material_candidate.node_tree.nodes:
+                    if node.type == "TEX_IMAGE":
+                        if (
+                            node.image is not None
+                            and node.image.filepath == texture_path
+                        ):
+                            output = material_candidate
 
     if output is None:
         if bpy.data.materials.get(name):
@@ -64,70 +83,265 @@ def create_material(name, texture_path):
             else:
                 output.node_tree.nodes.remove(node)
 
-        vertex_color = output.node_tree.nodes.new("ShaderNodeVertexColor")
-        vertex_color.layer_name = "Attribute"
-        vertex_color.location = (-500, -50)
+        match type:
+            case "opaque":
+                vertex_color = output.node_tree.nodes.new("ShaderNodeVertexColor")
+                vertex_color.layer_name = "Attribute"
+                vertex_color.location = (-350, 50)
 
-        tex_image = output.node_tree.nodes.new("ShaderNodeTexImage")
-        tex_image.image = bpy.data.images.get(texture_path) or bpy.data.images.load(
-            texture_path
-        )
-        tex_image.extension = "CLIP"
-        tex_image.interpolation = "Closest"
-        tex_image.location = (-600, -225)
+                tex_image = output.node_tree.nodes.new("ShaderNodeTexImage")
+                tex_image.image = bpy.data.images.get(
+                    texture_path
+                ) or bpy.data.images.load(texture_path)
+                tex_image.extension = "CLIP"
+                tex_image.interpolation = "Closest"
+                tex_image.location = (-450, -125)
 
-        mix = output.node_tree.nodes.new("ShaderNodeMix")
-        mix.data_type = "RGBA"
-        mix.blend_type = "MULTIPLY"
-        mix.inputs[0].default_value = 1
-        mix.location = (-250, 0)
+                color_mix = output.node_tree.nodes.new("ShaderNodeMix")
+                color_mix.data_type = "RGBA"
+                color_mix.blend_type = "MULTIPLY"
+                color_mix.inputs[0].default_value = 1
+                color_mix.location = (-100, 50)
 
-        emission = output.node_tree.nodes.new("ShaderNodeEmission")
-        emission.location = (0, 0)
+                emission = output.node_tree.nodes.new("ShaderNodeEmission")
+                emission.location = (150, 50)
 
-        output_node.location = (250, 0)
+                output_node.location = (400, 50)
 
-        output.node_tree.links.new(mix.inputs[6], vertex_color.outputs[0])
-        output.node_tree.links.new(mix.inputs[7], tex_image.outputs[0])
-        output.node_tree.links.new(emission.inputs[0], mix.outputs[2])
-        output.node_tree.links.new(output_node.inputs[0], emission.outputs[0])
+                output.node_tree.links.new(color_mix.inputs[6], vertex_color.outputs[0])
+                output.node_tree.links.new(color_mix.inputs[7], tex_image.outputs[0])
+                output.node_tree.links.new(emission.inputs[0], color_mix.outputs[2])
+                output.node_tree.links.new(output_node.inputs[0], emission.outputs[0])
+
+            case "cutout":
+                vertex_color = output.node_tree.nodes.new("ShaderNodeVertexColor")
+                vertex_color.layer_name = "Attribute"
+                vertex_color.location = (-600, 50)
+
+                tex_image = output.node_tree.nodes.new("ShaderNodeTexImage")
+                tex_image.image = bpy.data.images.get(
+                    texture_path
+                ) or bpy.data.images.load(texture_path)
+                tex_image.extension = "CLIP"
+                tex_image.interpolation = "Closest"
+                tex_image.location = (-700, -125)
+
+                color_mix = output.node_tree.nodes.new("ShaderNodeMix")
+                color_mix.data_type = "RGBA"
+                color_mix.blend_type = "MULTIPLY"
+                color_mix.inputs[0].default_value = 1
+                color_mix.location = (-350, -150)
+
+                multiply = output.node_tree.nodes.new("ShaderNodeMath")
+                multiply.operation = "MULTIPLY"
+                multiply.location = (-350, 50)
+
+                emission = output.node_tree.nodes.new("ShaderNodeEmission")
+                emission.location = (-100, -250)
+
+                transparent = output.node_tree.nodes.new("ShaderNodeBsdfTransparent")
+                transparent.location = (-100, -100)
+
+                transparency_mix = output.node_tree.nodes.new("ShaderNodeMixShader")
+                transparency_mix.location = (150, 50)
+
+                output_node.location = (400, 50)
+
+                output.node_tree.links.new(color_mix.inputs[6], vertex_color.outputs[0])
+                output.node_tree.links.new(multiply.inputs[0], vertex_color.outputs[1])
+                output.node_tree.links.new(color_mix.inputs[7], tex_image.outputs[0])
+                output.node_tree.links.new(multiply.inputs[1], tex_image.outputs[1])
+                output.node_tree.links.new(emission.inputs[0], color_mix.outputs[2])
+
+                output.node_tree.links.new(
+                    transparency_mix.inputs[0], multiply.outputs[0]
+                )
+                output.node_tree.links.new(
+                    transparency_mix.inputs[1], transparent.outputs[0]
+                )
+                output.node_tree.links.new(
+                    output_node.inputs[0], transparency_mix.outputs[0]
+                )
+
+                output.node_tree.links.new(
+                    transparency_mix.inputs[2], emission.outputs[0]
+                )
+
+                output.blend_method = "CLIP"
+                output.shadow_method = "CLIP"
+
+            case "additive":
+                vertex_color = output.node_tree.nodes.new("ShaderNodeVertexColor")
+                vertex_color.layer_name = "Attribute"
+                vertex_color.location = (-600, 50)
+
+                tex_image = output.node_tree.nodes.new("ShaderNodeTexImage")
+                tex_image.image = bpy.data.images.get(
+                    texture_path
+                ) or bpy.data.images.load(texture_path)
+                tex_image.extension = "CLIP"
+                tex_image.interpolation = "Closest"
+                tex_image.location = (-700, -125)
+
+                color_mix = output.node_tree.nodes.new("ShaderNodeMix")
+                color_mix.data_type = "RGBA"
+                color_mix.blend_type = "MULTIPLY"
+                color_mix.inputs[0].default_value = 1
+                color_mix.location = (-350, 50)
+
+                emission = output.node_tree.nodes.new("ShaderNodeEmission")
+                emission.location = (-100, -100)
+
+                transparent = output.node_tree.nodes.new("ShaderNodeBsdfTransparent")
+                transparent.location = (-100, 50)
+
+                transparency_mix = output.node_tree.nodes.new("ShaderNodeAddShader")
+                transparency_mix.location = (150, 50)
+
+                output_node.location = (400, 50)
+
+                output.node_tree.links.new(color_mix.inputs[6], vertex_color.outputs[0])
+                output.node_tree.links.new(color_mix.inputs[7], tex_image.outputs[0])
+                output.node_tree.links.new(emission.inputs[0], color_mix.outputs[2])
+
+                output.node_tree.links.new(
+                    transparency_mix.inputs[0], transparent.outputs[0]
+                )
+                output.node_tree.links.new(
+                    output_node.inputs[0], transparency_mix.outputs[0]
+                )
+
+                output.node_tree.links.new(
+                    transparency_mix.inputs[1], emission.outputs[0]
+                )
+
+                output.blend_method = "BLEND"
+                output.shadow_method = "NONE"
+
+            case "blend":
+                vertex_color = output.node_tree.nodes.new("ShaderNodeVertexColor")
+                vertex_color.layer_name = "Attribute"
+                vertex_color.location = (-600, 50)
+
+                tex_image = output.node_tree.nodes.new("ShaderNodeTexImage")
+                tex_image.image = bpy.data.images.get(
+                    texture_path
+                ) or bpy.data.images.load(texture_path)
+                tex_image.extension = "CLIP"
+                tex_image.interpolation = "Closest"
+                tex_image.location = (-700, -125)
+
+                color_mix = output.node_tree.nodes.new("ShaderNodeMix")
+                color_mix.data_type = "RGBA"
+                color_mix.blend_type = "MULTIPLY"
+                color_mix.inputs[0].default_value = 1
+                color_mix.location = (-350, -150)
+
+                multiply = output.node_tree.nodes.new("ShaderNodeMath")
+                multiply.operation = "MULTIPLY"
+                multiply.location = (-350, 50)
+
+                emission = output.node_tree.nodes.new("ShaderNodeEmission")
+                emission.location = (-100, -250)
+
+                transparent = output.node_tree.nodes.new("ShaderNodeBsdfTransparent")
+                transparent.location = (-100, -100)
+
+                transparency_mix = output.node_tree.nodes.new("ShaderNodeMixShader")
+                transparency_mix.location = (150, 50)
+
+                output_node.location = (400, 50)
+
+                output.node_tree.links.new(color_mix.inputs[6], vertex_color.outputs[0])
+                output.node_tree.links.new(multiply.inputs[0], vertex_color.outputs[1])
+                output.node_tree.links.new(color_mix.inputs[7], tex_image.outputs[0])
+                output.node_tree.links.new(multiply.inputs[1], tex_image.outputs[1])
+                output.node_tree.links.new(emission.inputs[0], color_mix.outputs[2])
+
+                output.node_tree.links.new(
+                    transparency_mix.inputs[0], multiply.outputs[0]
+                )
+                output.node_tree.links.new(
+                    transparency_mix.inputs[1], transparent.outputs[0]
+                )
+                output.node_tree.links.new(
+                    output_node.inputs[0], transparency_mix.outputs[0]
+                )
+
+                output.node_tree.links.new(
+                    transparency_mix.inputs[2], emission.outputs[0]
+                )
+
+                output.blend_method = "BLEND"
+                output.shadow_method = "HASHED"
 
     return output
 
 
-class IndifferenceEngineOBJAddMaterial(Operator, ImportHelper):
-    bl_idname = "indifference_engine_obj.add_material"
-    bl_label = "Add Indifference Engine OBJ Material"
+def import_material(self, context, prefix):
+    initialize_scene(context)
+
+    name = prefix + path.basename(path.splitext(self.properties.filepath)[0])
+
+    if not match("^[a-z_][a-z_0-9]*$", name):
+        self.report(
+            {"ERROR"},
+            'Texture name file names should be lower case, start with a letter or underscore, followed by only letters, digits and/or underscores ("'
+            + name
+            + '").',
+        )
+        return {"FINISHED"}
+
+    material = create_material(name, self.properties.filepath)
+
+    for object in bpy.context.selected_objects:
+        if object.type == "MESH" and not object.name.startswith("navigation_mesh_"):
+            exists = False
+
+            for index, existing_material in enumerate(object.data.materials):
+                if existing_material == material:
+                    exists = True
+
+            if not exists:
+                object.data.materials.append(material)
+
+    return {"FINISHED"}
+
+
+class IndifferenceEngineOBJAddOpaqueMaterial(Operator, ImportHelper):
+    bl_idname = "indifference_engine_obj.add_opaque_material"
+    bl_label = "Add Indifference Engine OBJ Opaque Material"
     filename_ext = ".tga"
 
     def execute(self, context):
-        initialize_scene(context)
+        return import_material(self, context, "opaque_")
 
-        name = path.basename(path.splitext(self.properties.filepath)[0])
 
-        if not match("^[a-z_][a-z_0-9]*$", name):
-            self.report(
-                {"ERROR"},
-                'Texture name file names should be lower case, start with a letter or underscore, followed by only letters, digits and/or underscores ("'
-                + name
-                + '").',
-            )
-            return {"FINISHED"}
+class IndifferenceEngineOBJAddBlendMaterial(Operator, ImportHelper):
+    bl_idname = "indifference_engine_obj.add_blend_material"
+    bl_label = "Add Indifference Engine OBJ Blend Material"
+    filename_ext = ".tga"
 
-        material = create_material(name, self.properties.filepath)
+    def execute(self, context):
+        return import_material(self, context, "blend_")
 
-        for object in bpy.context.selected_objects:
-            if object.type == "MESH" and not object.name.startswith("navigation_mesh_"):
-                exists = False
 
-                for index, existing_material in enumerate(object.data.materials):
-                    if existing_material == material:
-                        exists = True
+class IndifferenceEngineOBJAddCutoutMaterial(Operator, ImportHelper):
+    bl_idname = "indifference_engine_obj.add_cutout_material"
+    bl_label = "Add Indifference Engine OBJ Cutout Material"
+    filename_ext = ".tga"
 
-                if not exists:
-                    object.data.materials.append(material)
+    def execute(self, context):
+        return import_material(self, context, "cutout_")
 
-        return {"FINISHED"}
+
+class IndifferenceEngineOBJAddAdditiveMaterial(Operator, ImportHelper):
+    bl_idname = "indifference_engine_obj.add_additive_material"
+    bl_label = "Add Indifference Engine OBJ Additive Material"
+    filename_ext = ".tga"
+
+    def execute(self, context):
+        return import_material(self, context, "additive_")
 
 
 class IndifferenceEngineOBJAddNavigationMesh(Operator):
@@ -150,7 +364,7 @@ class IndifferenceEngineOBJAdd(Menu):
     def draw(self, context):
         layout = self.layout
         layout.operator_context = "INVOKE_REGION_WIN"
-        layout.operator(
+        layout.menu(
             IndifferenceEngineOBJAddMaterial.bl_idname,
             text="Material",
             icon="MATERIAL",
@@ -159,6 +373,36 @@ class IndifferenceEngineOBJAdd(Menu):
             IndifferenceEngineOBJAddNavigationMesh.bl_idname,
             text="Navigation Mesh",
             icon="MESH_DATA",
+        )
+
+
+class IndifferenceEngineOBJAddMaterial(Menu):
+    bl_idname = "INDIFFERENCE_ENGINE_OBJ_MT_add_material"
+    bl_label = "Material"
+    bl_options = {"SEARCH_ON_KEY_PRESS"}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator_context = "INVOKE_REGION_WIN"
+        layout.operator(
+            IndifferenceEngineOBJAddOpaqueMaterial.bl_idname,
+            text="Opaque",
+            icon="MATERIAL",
+        )
+        layout.operator(
+            IndifferenceEngineOBJAddBlendMaterial.bl_idname,
+            text="Blend",
+            icon="MATERIAL",
+        )
+        layout.operator(
+            IndifferenceEngineOBJAddCutoutMaterial.bl_idname,
+            text="Cutout",
+            icon="MATERIAL",
+        )
+        layout.operator(
+            IndifferenceEngineOBJAddAdditiveMaterial.bl_idname,
+            text="Additive",
+            icon="MATERIAL",
         )
 
 
@@ -788,9 +1032,13 @@ def menu_import(self, context):
 
 
 classes = (
-    IndifferenceEngineOBJAddMaterial,
+    IndifferenceEngineOBJAddOpaqueMaterial,
+    IndifferenceEngineOBJAddBlendMaterial,
+    IndifferenceEngineOBJAddCutoutMaterial,
+    IndifferenceEngineOBJAddAdditiveMaterial,
     IndifferenceEngineOBJAddNavigationMesh,
     IndifferenceEngineOBJAdd,
+    IndifferenceEngineOBJAddMaterial,
     IndifferenceEngineOBJExport,
     IndifferenceEngineOBJImport,
 )

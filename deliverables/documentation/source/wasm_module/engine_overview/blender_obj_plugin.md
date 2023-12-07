@@ -23,11 +23,20 @@ display assets similarly to Indifference Engine.
 
 ## Creating new materials
 
-Select `Add` > `Indifference Engine` > `Material` from the menu bar.  This will
-prompt for a TGA file.
+Select `Add` > `Indifference Engine` > `Material` from the menu bar and select
+the appropriate material type:
 
-If no material exists for the TGA file, one is created using the name of the TGA
-file excluding its file extension and the selected TGA file as a base color.
+| Type     | Description                                                                                                                                                                                                                                                                                                                              |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Opaque   | Solid geometry.  Should be used for all surfaces not matching any of the below.                                                                                                                                                                                                                                                          |
+| Cutout   | Similar to "Opaque", but where any opacity values below 50% are fully transparent, with a hard edge.  Useful for grates, fences, foliage, etc.  Prefer over "Blend" where possible.                                                                                                                                                      |
+| Blend    | Blends between the surface and those behind it (similar to the "Normal" layer blend mode in Adobe Photoshop).  May draw in the wrong order if multiple "Blend" or "Additive" materials are layered together.  Useful for smoke, glass, etc.                                                                                              |
+| Additive | Brightens the background (similar to the "Linear Dodge (Add)" layer blend mode in Adobe Photoshop).  May draw in the wrong order if layered together with "Blend" materials, but _will_ combine correctly with "Opaque", "Cutout" and/or "Additive" materials.  Useful for lasers, lens flares, flames, explosions, muzzle flashes, etc. |
+
+You will then be prompted for a TGA file.  If no material of the specified type
+exists for the TGA file, one is created using the name of the TGA file excluding
+its file extension and the selected TGA file as a base color.  It will be
+prefixed with the material type.
 
 If an object other than the navigation mesh is selected and no material slot
 uses that TGA file, the material found or created above is added to a new slot.

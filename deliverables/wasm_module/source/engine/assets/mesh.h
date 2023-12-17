@@ -25,6 +25,7 @@ typedef struct
    * The locations of the vertices of opaque and cutout geometry in the mesh.
    */
   const vector *const opaque_cutout_locations;
+  // TODO: Flatten
 
   /**
    * The number of opaque render passes in the mesh.
@@ -115,6 +116,13 @@ typedef struct
   const f32 *const cutout_columns;
 
   /**
+   * The opacity of each vertex of each cutout triangle within the mesh.
+   * @remark 0 is transparent and 1 is opaque.  Behavior is undefined outside of
+   *         this range.
+   */
+  const f32 *const cutout_opacities;
+
+  /**
    * The intensity of the red channel of each vertex of each cutout triangle
    * within the mesh, in candela per square meter.
    */
@@ -131,13 +139,6 @@ typedef struct
    * within the mesh, in candela per square meter.
    */
   const f32 *const cutout_blues;
-
-  /**
-   * The opacity of each vertex of each cutout triangle within the mesh.
-   * @remark 0 is transparent and 1 is opaque.  Behavior is undefined outside of
-   *         this range.
-   */
-  const f32 *const cutout_opacities;
 
   /**
    * The number of vertices for additive and blended geometry in the mesh.
@@ -238,6 +239,13 @@ typedef struct
   const f32 *const blended_columns;
 
   /**
+   * The opacity of each vertex of each blended triangle within the mesh.
+   * @remark 0 is transparent and 1 is opaque.  Behavior is undefined outside of
+   *         this range.
+   */
+  const f32 *const blended_opacities;
+
+  /**
    * The intensity of the red channel of each vertex of each blended triangle
    * within the mesh, in candela per square meter.
    */
@@ -254,13 +262,6 @@ typedef struct
    * within the mesh, in candela per square meter.
    */
   const f32 *const blended_blues;
-
-  /**
-   * The opacity of each vertex of each blended triangle within the mesh.
-   * @remark 0 is transparent and 1 is opaque.  Behavior is undefined outside of
-   *         this range.
-   */
-  const f32 *const blended_opacities;
 } mesh;
 
 /**

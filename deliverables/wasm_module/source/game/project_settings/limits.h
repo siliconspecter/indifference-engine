@@ -30,10 +30,9 @@
 #define MAXIMUM_CAMERA_COMPONENTS 4
 
 /**
- * The maximum number of opaque mesh components which may exist at any given
- * time.
+ * The maximum number of mesh components which may exist at any given time.
  */
-#define MAXIMUM_OPAQUE_MESH_COMPONENTS 8
+#define MAXIMUM_MESH_COMPONENTS 8
 
 /**
  * The maximum number of vertices which may exist in a mesh.

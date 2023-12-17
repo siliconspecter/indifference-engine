@@ -37,9 +37,9 @@
 #define ERROR_NO_CAMERA_COMPONENTS_TO_ALLOCATE -5
 
 /**
- * Indicates that no opaque mesh components were left to allocate.
+ * Indicates that no mesh components were left to allocate.
  */
-#define ERROR_NO_OPAQUE_MESH_COMPONENTS_TO_ALLOCATE -6
+#define ERROR_NO_MESH_COMPONENTS_TO_ALLOCATE -6
 
 /**
  * Indicates that the game was requested to run a script it did not support.

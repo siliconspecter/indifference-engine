@@ -249,19 +249,19 @@ Where multiple selectable components cover the same pixel, the closest by Z
 depth is considered to be hovered/confirmed/selected/etc. when the pointer
 occupies said pixel, even if it lacks a state change callback.
 
-#### Opaque mesh components
+#### Mesh components
 
 TODO
 
-#### Animated opaque mesh components
+#### Animated mesh components
 
 TODO
 
-#### Opaque billboard components
+#### Billboard components
 
 TODO
 
-#### Animated opaque billboard components
+#### Animated billboard components
 
 TODO
 

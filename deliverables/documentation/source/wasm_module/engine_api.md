@@ -58,17 +58,17 @@ API are documented through comments and are listed here for quick reference.
 
 ### Components
 
-| Header                                                                                              | Description                                                                                    |
-| --------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| @ref deliverables/wasm_module/source/engine/scenes/components/animated_opaque_billboard_component.h | Components which display non-translucent "billboard" sprites with "flip-book" style animation. |
-| @ref deliverables/wasm_module/source/engine/scenes/components/animated_opaque_mesh_component.h      | Components which display non-translucent meshes with "flip-book" style animation.              |
-| @ref deliverables/wasm_module/source/engine/scenes/components/camera_component.h                    | Components which render the scene to a viewport.                                               |
-| @ref deliverables/wasm_module/source/engine/scenes/components/component.h                           | Tools for making custom components to attach to entities.                                      |
-| @ref deliverables/wasm_module/source/engine/scenes/components/navigation_mesh_component.h           | Components for which collision and navigation.                                                 |
-| @ref deliverables/wasm_module/source/engine/scenes/components/opaque_billboard_component.h          | Components which display non-translucent "billboard" sprites.                                  |
-| @ref deliverables/wasm_module/source/engine/scenes/components/opaque_mesh_component.h               | Components which display non-translucent meshes.                                               |
-| @ref deliverables/wasm_module/source/engine/scenes/components/selectable_component.h                | Components which convert their attached entities into UI elements.                             |
-| @ref deliverables/wasm_module/source/engine/scenes/components/song_component.h                      | Components which play songs.                                                                   |
-| @ref deliverables/wasm_module/source/engine/scenes/components/sound_component.h                     | Components which play sounds.                                                                  |
-| @ref deliverables/wasm_module/source/engine/scenes/components/tick_component.h                      | Components which execute callbacks on each tick.                                               |
-| @ref deliverables/wasm_module/source/engine/scenes/components/timer_component.h                     | Components which execute callbacks after fixed numbers of ticks.                               |
+| Header                                                                                       | Description                                                                    |
+| -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| @ref deliverables/wasm_module/source/engine/scenes/components/animated_billboard_component.h | Components which display "billboard" sprites with "flip-book" style animation. |
+| @ref deliverables/wasm_module/source/engine/scenes/components/animated_mesh_component.h      | Components which display meshes with "flip-book" style animation.              |
+| @ref deliverables/wasm_module/source/engine/scenes/components/camera_component.h             | Components which render the scene to a viewport.                               |
+| @ref deliverables/wasm_module/source/engine/scenes/components/component.h                    | Tools for making custom components to attach to entities.                      |
+| @ref deliverables/wasm_module/source/engine/scenes/components/navigation_mesh_component.h    | Components for which collision and navigation.                                 |
+| @ref deliverables/wasm_module/source/engine/scenes/components/billboard_component.h          | Components which display "billboard" sprites.                                  |
+| @ref deliverables/wasm_module/source/engine/scenes/components/mesh_component.h               | Components which display meshes.                                               |
+| @ref deliverables/wasm_module/source/engine/scenes/components/selectable_component.h         | Components which convert their attached entities into UI elements.             |
+| @ref deliverables/wasm_module/source/engine/scenes/components/song_component.h               | Components which play songs.                                                   |
+| @ref deliverables/wasm_module/source/engine/scenes/components/sound_component.h              | Components which play sounds.                                                  |
+| @ref deliverables/wasm_module/source/engine/scenes/components/tick_component.h               | Components which execute callbacks on each tick.                               |
+| @ref deliverables/wasm_module/source/engine/scenes/components/timer_component.h              | Components which execute callbacks after fixed numbers of ticks.               |

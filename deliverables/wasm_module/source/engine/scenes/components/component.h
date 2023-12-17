@@ -30,7 +30,7 @@ ASSERT(too_many_bits_for_component_handle, COMPONENT_HANDLE_BITS_FOR_META + COMP
 ASSERT(too_few_meta_bits_for_timer_components, MAXIMUM_TIMER_COMPONENTS <= (1 << COMPONENT_HANDLE_BITS_FOR_META));
 ASSERT(too_few_meta_bits_for_sound_components, MAXIMUM_SOUND_COMPONENTS <= (1 << COMPONENT_HANDLE_BITS_FOR_META));
 ASSERT(too_few_meta_bits_for_camera_components, MAXIMUM_CAMERA_COMPONENTS <= (1 << COMPONENT_HANDLE_BITS_FOR_META));
-ASSERT(too_few_meta_bits_for_opaque_mesh_components, MAXIMUM_OPAQUE_MESH_COMPONENTS <= (1 << COMPONENT_HANDLE_BITS_FOR_META));
+ASSERT(too_few_meta_bits_for_mesh_components, MAXIMUM_MESH_COMPONENTS <= (1 << COMPONENT_HANDLE_BITS_FOR_META));
 ASSERT(too_few_parent_bits_for_entities, MAXIMUM_ENTITIES <= (1 << COMPONENT_HANDLE_BITS_FOR_PARENT));
 ASSERT(too_few_parent_bits_for_components, MAXIMUM_COMPONENTS <= (1 << COMPONENT_HANDLE_BITS_FOR_PARENT));
 ASSERT(too_few_component_bits, MAXIMUM_COMPONENTS <= (1 << COMPONENT_HANDLE_BITS_FOR_COMPONENT));

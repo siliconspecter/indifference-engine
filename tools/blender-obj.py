@@ -39,8 +39,8 @@ def initialize_scene(context):
 def get_material_type_from_name(name):
     if name.startswith("cutout_"):
         return "cutout"
-    elif name.startswith("blend_"):
-        return "blend"
+    elif name.startswith("blended_"):
+        return "blended"
     elif name.startswith("additive_"):
         return "additive"
     else:
@@ -218,7 +218,7 @@ def create_material(name, texture_path):
                 output.blend_method = "BLEND"
                 output.shadow_method = "NONE"
 
-            case "blend":
+            case "blended":
                 vertex_color = output.node_tree.nodes.new("ShaderNodeVertexColor")
                 vertex_color.layer_name = "Attribute"
                 vertex_color.location = (-600, 50)
@@ -318,12 +318,12 @@ class IndifferenceEngineOBJAddOpaqueMaterial(Operator, ImportHelper):
 
 
 class IndifferenceEngineOBJAddBlendMaterial(Operator, ImportHelper):
-    bl_idname = "indifference_engine_obj.add_blend_material"
-    bl_label = "Add Indifference Engine OBJ Blend Material"
+    bl_idname = "indifference_engine_obj.add_blended_material"
+    bl_label = "Add Indifference Engine OBJ Blended Material"
     filename_ext = ".tga"
 
     def execute(self, context):
-        return import_material(self, context, "blend_")
+        return import_material(self, context, "blended_")
 
 
 class IndifferenceEngineOBJAddCutoutMaterial(Operator, ImportHelper):
@@ -391,7 +391,7 @@ class IndifferenceEngineOBJAddMaterial(Menu):
         )
         layout.operator(
             IndifferenceEngineOBJAddBlendMaterial.bl_idname,
-            text="Blend",
+            text="Blended",
             icon="MATERIAL",
         )
         layout.operator(

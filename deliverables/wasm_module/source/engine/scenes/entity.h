@@ -7,6 +7,7 @@
 #include "../primitives/index.h"
 #include "../math/matrix.h"
 #include "../../game/project_settings/limits.h"
+#include "components/camera_component.h"
 
 /**
  * Creates a new entity with a default identity transform.
@@ -67,6 +68,18 @@ extern matrix interpolated_entity_transforms[MAXIMUM_ENTITIES];
  */
 extern matrix interpolated_inverse_entity_transforms[MAXIMUM_ENTITIES];
 
+/**
+ * The forward model-view-projection matrices of all entities at the time of the
+ * current video render.
+ */
+extern matrix entity_model_view_projections[MAXIMUM_ENTITIES];
+
+/**
+ * The inverse model-view-projection matrices of all entities at the time of the
+ * current video render.
+ */
+extern matrix inverse_entity_model_view_projections[MAXIMUM_ENTITIES];
+
 #endif
 
 /**
@@ -95,6 +108,15 @@ void destroy_all_entities();
  * Called during the video event handler to perform interpolation as required.
  */
 void prepare_entities_for_video();
+
+/**
+ * Populates @ref entity_model_view_projections and
+ * @ref entity_inverse_model_view_projections by applying
+ * @ref camera_component_view_projection to @ref interpolated_entity_transforms
+ * and @ref camera_component_inverse_view_projection to
+ * @ref interpolated_inverse_entity_transforms respectively.
+ */
+void apply_current_camera_component_to_entity_transforms();
 
 #endif
 

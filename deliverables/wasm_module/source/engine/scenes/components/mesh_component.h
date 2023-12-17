@@ -5,9 +5,7 @@
 #define MESH_COMPONENT_H
 
 #include "component.h"
-#include "../../primitives/f32.h"
 #include "../../primitives/index.h"
-#include "../../../game/project_settings/limits.h"
 #include "../../assets/mesh.h"
 
 /**
@@ -43,5 +41,21 @@ component_handle mesh_component(
 component_handle mesh_sub_component(
     const component_handle component,
     const mesh *const mesh);
+
+#ifndef DOXYGEN_IGNORE
+
+/**
+ * Called by the video event handler once per camera to render all opaque and
+ * cutout mesh components.
+ */
+void render_opaque_cutout_mesh_components();
+
+/**
+ * Called by the video event handler once per camera to render all additive and
+ * blended mesh components.
+ */
+void render_additive_blended_mesh_components();
+
+#endif
 
 #endif

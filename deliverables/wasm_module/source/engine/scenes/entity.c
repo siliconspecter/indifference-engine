@@ -5,6 +5,7 @@
 #include "components/component.h"
 #include "../exports/buffers/error.h"
 #include "../exports/buffers/video.h"
+#include "components/camera_component.h"
 
 matrix previous_entity_transforms[MAXIMUM_ENTITIES];
 matrix next_entity_transforms[MAXIMUM_ENTITIES];
@@ -12,6 +13,8 @@ matrix interpolated_entity_transforms[MAXIMUM_ENTITIES];
 matrix previous_inverse_entity_transforms[MAXIMUM_ENTITIES];
 matrix next_inverse_entity_transforms[MAXIMUM_ENTITIES];
 matrix interpolated_inverse_entity_transforms[MAXIMUM_ENTITIES];
+matrix entity_model_view_projections[MAXIMUM_ENTITIES];
+matrix inverse_entity_model_view_projections[MAXIMUM_ENTITIES];
 
 #define ENTITY_STATE_INACTIVE 0
 #define ENTITY_STATE_ACTIVE 1
@@ -80,7 +83,7 @@ void prepare_entities_for_video()
 {
   if (first_occupied != INDEX_NONE)
   {
-    const quantity total = (last_occupied - first_occupied + 1) * 16;
+    const quantity total = (1 + last_occupied - first_occupied) * 16;
 
     prepare_entity_column_for_video(
         &previous_entity_transforms[first_occupied][0][0],
@@ -92,6 +95,39 @@ void prepare_entities_for_video()
         &previous_inverse_entity_transforms[first_occupied][0][0],
         &next_inverse_entity_transforms[first_occupied][0][0],
         &interpolated_inverse_entity_transforms[first_occupied][0][0],
+        total);
+  }
+}
+
+static void apply_current_camera_component_to_column_of_entity_transforms(
+    const matrix *const interpolated_transforms,
+    matrix from_camera_component,
+    matrix *const applied_transforms,
+    const quantity total)
+{
+  for (index index = 0; index < total; index++)
+  {
+    // TODO: Check whether this is correct for inverse, it likely isn't.
+    multiply_matrices(interpolated_transforms[index], from_camera_component, applied_transforms[index]);
+  }
+}
+
+void apply_current_camera_component_to_entity_transforms()
+{
+  if (first_occupied != INDEX_NONE)
+  {
+    const quantity total = 1 + last_occupied - first_occupied;
+
+    apply_current_camera_component_to_column_of_entity_transforms(
+        &interpolated_entity_transforms[first_occupied],
+        camera_component_view_projection,
+        &entity_model_view_projections[first_occupied],
+        total);
+
+    apply_current_camera_component_to_column_of_entity_transforms(
+        &interpolated_inverse_entity_transforms[first_occupied],
+        camera_component_inverse_view_projection,
+        &inverse_entity_model_view_projections[first_occupied],
         total);
   }
 }

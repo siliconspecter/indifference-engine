@@ -25,6 +25,13 @@ typedef struct
   const quantity columns;
 
   /**
+   * The opacity of each pixel within the texture, row-major.
+   * @remark 0 is transparent and 1 is opaque.  Behavior is undefined outside of
+   *         this range.
+   */
+  const f32 *const opacities;
+
+  /**
    * The intensity of the red channel of each pixel within the texture,
    * row-major.
    * @remark 0 is dark and 1 is bright.  Values may exceed this range.
@@ -44,13 +51,6 @@ typedef struct
    * @remark 0 is dark and 1 is bright.  Values may exceed this range.
    */
   const f32 *const blues;
-
-  /**
-   * The opacity of each pixel within the texture, row-major.
-   * @remark 0 is transparent and 1 is opaque.  Behavior is undefined outside of
-   *         this range.
-   */
-  const f32 *const opacities;
 } texture;
 
 /**

@@ -223,11 +223,11 @@ int main(int argc, char **argv)
 
   const uint8_t *color_map_data = read_u8s("Failed to read the color map.", color_map_size);
 
-  write_stdout("Failed to write the header.", "#include \"%s\"\n#include \"%s\"\n\nstatic const f32 %s_reds[] = {", argv[1], argv[2], argv[3]);
+  write_stdout("Failed to write the header.", "#include \"%s\"\n#include \"%s\"\n\nstatic const f32 %s_opacities[] = {", argv[1], argv[2], argv[3]);
 
+  float *const reds = malloc_or_exit("Failed to allocate memory for the red channel.", sizeof(float) * image_specification_width * image_specification_height);
   float *const greens = malloc_or_exit("Failed to allocate memory for the green channel.", sizeof(float) * image_specification_width * image_specification_height);
   float *const blues = malloc_or_exit("Failed to allocate memory for the blue channel.", sizeof(float) * image_specification_width * image_specification_height);
-  float *const opacities = malloc_or_exit("Failed to allocate memory for opacity.", sizeof(float) * image_specification_width * image_specification_height);
 
   int output_pixels = 0;
 
@@ -256,12 +256,12 @@ int main(int argc, char **argv)
             exit(1);
           }
 
-          const float red = pow(((float)color_map_data[offset + 2]) / 255.0f, 2.2f);
+          const float opacity = ((float)color_map_data[offset + 3]) / 255.0f;
+          reds[output_pixels] = pow(((float)color_map_data[offset + 2]) / 255.0f, 2.2f);
           greens[output_pixels] = pow(((float)color_map_data[offset + 1]) / 255.0f, 2.2f);
           blues[output_pixels] = pow(((float)color_map_data[offset]) / 255.0f, 2.2f);
-          opacities[output_pixels] = ((float)color_map_data[offset + 3]) / 255.0f;
 
-          write_stdout("Failed to write a red intensity.", "%s%s%f", output_pixels ? "," : "", output_pixels % image_specification_width ? "" : "\n    ", red);
+          write_stdout("Failed to write an opacity.", "%s%s%f", output_pixels ? "," : "", output_pixels % image_specification_width ? "" : "\n    ", opacity);
           output_pixels++;
           instruction--;
         }
@@ -283,12 +283,12 @@ int main(int argc, char **argv)
       {
         if (output_pixels < image_specification_width * image_specification_height)
         {
-          const float red = pow(((float)color_map_data[offset + 2]) / 255.0f, 2.2f);
+          const float opacity = ((float)color_map_data[offset + 3]) / 255.0f;
+          reds[output_pixels] = pow(((float)color_map_data[offset + 2]) / 255.0f, 2.2f);
           greens[output_pixels] = pow(((float)color_map_data[offset + 1]) / 255.0f, 2.2f);
           blues[output_pixels] = pow(((float)color_map_data[offset]) / 255.0f, 2.2f);
-          opacities[output_pixels] = ((float)color_map_data[offset + 3]) / 255.0f;
 
-          write_stdout("Failed to write a red intensity.", "%s%s%f", output_pixels ? ", " : "", output_pixels % image_specification_width ? "" : "\n    ", red);
+          write_stdout("Failed to write an opacity.", "%s%s%f", output_pixels ? ", " : "", output_pixels % image_specification_width ? "" : "\n    ", opacity);
           output_pixels++;
           instruction--;
         }
@@ -301,7 +301,15 @@ int main(int argc, char **argv)
     }
   }
 
-  write_stdout("Failed to write the footer of the red channel and the header of the green channel.", "};\n\nstatic const f32 %s_greens[] = {", argv[3]);
+  write_stdout("Failed to write the footer of the opacities and the header of the red channel.", "};\n\nstatic const f32 %s_reds[] = {", argv[3]);
+
+  for (int pixel = 0; pixel < image_specification_width * image_specification_height; pixel++)
+  {
+    write_stdout("Failed to write an opacity.", "%s%s%f", pixel ? ", " : "", pixel % image_specification_width ? "" : "\n    ", reds[pixel]);
+  }
+  free(reds);
+
+  write_stdout("Failed to write the footer of the green channel and the header of the blue channel.", "};\n\nstatic const f32 %s_greens[] = {", argv[3]);
 
   for (int pixel = 0; pixel < image_specification_width * image_specification_height; pixel++)
   {
@@ -317,15 +325,7 @@ int main(int argc, char **argv)
   }
   free(blues);
 
-  write_stdout("Failed to write the footer of the blue channel and the header of the opacities.", "};\n\nstatic const f32 %s_opacities[] = {", argv[3]);
-
-  for (int pixel = 0; pixel < image_specification_width * image_specification_height; pixel++)
-  {
-    write_stdout("Failed to write an opacity.", "%s%s%f", pixel ? ", " : "", pixel % image_specification_width ? "" : "\n    ", opacities[pixel]);
-  }
-  free(opacities);
-
-  write_stdout("Failed to write the footer.", "};\n\nstatic const texture * const %s_texture = &((texture){%d, %d, %s_reds, %s_greens, %s_blues, %s_opacities});\n\nconst texture * %s()\n{\n  return %s_texture;\n}\n", argv[3], image_specification_height, image_specification_width, argv[3], argv[3], argv[3], argv[3], argv[3], argv[3]);
+  write_stdout("Failed to write the footer.", "};\n\nstatic const texture * const %s_texture = &((texture){%d, %d, %s_opacities, %s_reds, %s_greens, %s_blues});\n\nconst texture * %s()\n{\n  return %s_texture;\n}\n", argv[3], image_specification_height, image_specification_width, argv[3], argv[3], argv[3], argv[3], argv[3], argv[3]);
 
   return 0;
 }

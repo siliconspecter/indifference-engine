@@ -39,4 +39,16 @@
  */
 #define MAXIMUM_VERTICES_PER_MESH 4096
 
+/**
+ * The maximum number of mesh components with opaque and/or cutout geometry
+ * which may exist at any given time.
+ */
+#define MAXIMUM_OPAQUE_CUTOUT_MESH_COMPONENTS 8
+
+/**
+ * The maximum number of mesh components with additive and/or blended geometry
+ * which may exist at any given time.
+ */
+#define MAXIMUM_ADDITIVE_BLENDED_MESH_COMPONENTS 8
+
 #endif

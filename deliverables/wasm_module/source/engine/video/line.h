@@ -49,7 +49,7 @@ void render_opaque_line(
     const f32 end_depth);
 
 /**
- * Draws a transparent line in in the current camera component's viewport.
+ * Draws a blended line in in the current camera component's viewport.
  * @remark Only use when rendering video for a camera component.
  * @remark Does not write to the depth buffer.
  * @param start_red The intensity of the red channel at the start of the line,
@@ -81,7 +81,7 @@ void render_opaque_line(
  * @param end_depth The depth of the end of the line, where -1 is near and 1 is
  *                  far, non-linear.
  */
-void render_transparent_line(
+void render_blended_line(
     const f32 start_red,
     const f32 start_green,
     const f32 start_blue,

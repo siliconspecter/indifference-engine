@@ -121,7 +121,7 @@ void render_opaque_line(
   }
 }
 
-void render_transparent_line(
+void render_blended_line(
     const f32 start_red,
     const f32 start_green,
     const f32 start_blue,

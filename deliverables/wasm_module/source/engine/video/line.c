@@ -122,17 +122,17 @@ void render_opaque_line(
 }
 
 void render_blended_line(
+    const f32 start_opacity,
     const f32 start_red,
     const f32 start_green,
     const f32 start_blue,
-    const f32 start_opacity,
     const f32 start_row,
     const f32 start_column,
     const f32 start_depth,
+    const f32 end_opacity,
     const f32 end_red,
     const f32 end_green,
     const f32 end_blue,
-    const f32 end_opacity,
     const f32 end_row,
     const f32 end_column,
     const f32 end_depth)

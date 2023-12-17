@@ -158,8 +158,14 @@ static int face_indices_length = 0;
 static int *face_lengths = NULL;
 static int faces = 0;
 
+#define MATERIAL_TYPE_OPAQUE 0
+#define MATERIAL_TYPE_CUTOUT 1
+#define MATERIAL_TYPE_ADDITIVE 2
+#define MATERIAL_TYPE_BLENDED 3
+
 static char **material_names = NULL;
 static int *material_diffuse_texture_indices = NULL;
+static int *material_types = NULL;
 static int materials = 0;
 static int material_index = -1;
 
@@ -256,6 +262,163 @@ static void write(const char *error_message, const char *format, ...)
   }
 }
 
+static void write_float_array(
+    const char *error_message,
+    const float *floats,
+    const int quantity,
+    const char *name_format,
+    ...)
+{
+  if (quantity)
+  {
+    write(error_message, "static const f32 ");
+
+    va_list args;
+    va_start(args, name_format);
+
+    if (vfprintf(stdout, name_format, args) <= 0)
+    {
+      va_end(args);
+      fprintf(stderr, "%s\n", error_message);
+      exit(1);
+    }
+    else
+    {
+      va_end(args);
+    }
+
+    write(error_message, "[] = { ");
+
+    for (int index = 0; index < quantity; index++)
+    {
+      write(error_message, index ? ", %ff" : "%ff", floats[index]);
+    }
+
+    write(error_message, " };\n");
+  }
+}
+
+static void write_vector_array(
+    const char *error_message,
+    const float *vectors,
+    const int quantity,
+    const char *name_format,
+    ...)
+{
+  if (quantity)
+  {
+    write(error_message, "static const vector ");
+
+    va_list args;
+    va_start(args, name_format);
+
+    if (vfprintf(stdout, name_format, args) <= 0)
+    {
+      va_end(args);
+      fprintf(stderr, "%s\n", error_message);
+      exit(1);
+    }
+    else
+    {
+      va_end(args);
+    }
+
+    write(error_message, "[] = { ");
+
+    for (int index = 0; index < quantity * 3; index += 3)
+    {
+      write(error_message, index ? ", {%ff, %ff, %ff}" : "{%ff, %ff, %ff}", vectors[index], vectors[index + 1], vectors[index + 2]);
+    }
+
+    write(error_message, " };\n");
+  }
+}
+
+static void write_int_array(
+    const char *error_message,
+    const int *ints,
+    const int quantity,
+    const char *type,
+    const char *name_format,
+    ...)
+{
+  if (quantity)
+  {
+    write(error_message, "static const %s ", type);
+
+    va_list args;
+    va_start(args, name_format);
+
+    if (vfprintf(stdout, name_format, args) <= 0)
+    {
+      va_end(args);
+      fprintf(stderr, "%s\n", error_message);
+      exit(1);
+    }
+    else
+    {
+      va_end(args);
+    }
+
+    write(error_message, "[] = { ");
+
+    for (int index = 0; index < quantity; index++)
+    {
+      write(error_message, index ? ", %d" : "%d", ints[index]);
+    }
+
+    write(error_message, " };\n");
+  }
+}
+
+static void write_texture_reference_array(
+    const char *error_message,
+    const int *material_indices,
+    const int quantity,
+    const char *name_format,
+    ...)
+{
+  if (quantity)
+  {
+    for (int index = 0; index < quantity; index++)
+    {
+      const int texture_index = material_diffuse_texture_indices[material_indices[index]];
+
+      if (!textures_imported[texture_index])
+      {
+        write(error_message, "const texture * %s();\n", texture_variable_names[material_diffuse_texture_indices[material_indices[index]]]);
+
+        textures_imported[texture_index] = true;
+      }
+    }
+
+    write(error_message, "static texture_factory * const ");
+
+    va_list args;
+    va_start(args, name_format);
+
+    if (vfprintf(stdout, name_format, args) <= 0)
+    {
+      va_end(args);
+      fprintf(stderr, "%s\n", error_message);
+      exit(1);
+    }
+    else
+    {
+      va_end(args);
+    }
+
+    write(error_message, "[] = { ");
+
+    for (int index = 0; index < quantity; index++)
+    {
+      write(error_message, index ? ", %s" : "%s", texture_variable_names[material_diffuse_texture_indices[material_indices[index]]]);
+    }
+
+    write(error_message, " };\n");
+  }
+}
+
 static void cross_product(
     const float a[3],
     const float b[3],
@@ -300,6 +463,192 @@ static bool equal(
     const float to[3])
 {
   return from[0] == to[0] && from[1] == to[1] && from[2] == to[2];
+}
+
+static void obj_type(
+    int *target_vertices,
+    float **locations,
+    int passes,
+    const int *const material_indices,
+    int **triangles,
+    const int total_triangles,
+    int **indices,
+    float **rows,
+    float **columns,
+    float **opacities,
+    float **reds,
+    float **greens,
+    float **blues)
+{
+  if (total_triangles)
+  {
+    *triangles = malloc_or_exit("Failed to allocate memory for triangle counts.", sizeof(int) * passes);
+    *indices = malloc_or_exit("Failed to allocate memory for indices.", sizeof(int) * total_triangles * 3);
+    *rows = malloc_or_exit("Failed to allocate memory for texture coordinate rows.", sizeof(float) * total_triangles * 3);
+    *columns = malloc_or_exit("Failed to allocate memory for texture coordinate columns.", sizeof(float) * total_triangles * 3);
+
+    if (opacities != NULL)
+    {
+      *opacities = malloc_or_exit("Failed to allocate memory for opacities.", sizeof(float) * total_triangles * 3);
+    }
+
+    *reds = malloc_or_exit("Failed to allocate memory for reds.", sizeof(float) * total_triangles * 3);
+    *greens = malloc_or_exit("Failed to allocate memory for greens.", sizeof(float) * total_triangles * 3);
+    *blues = malloc_or_exit("Failed to allocate memory for blues.", sizeof(float) * total_triangles * 3);
+
+    int write_index = 0;
+
+    for (int pass = 0; pass < passes; pass++)
+    {
+      const int pass_material = material_indices[pass];
+
+      (*triangles)[pass] = 0;
+
+      int read_index = 0;
+
+      for (int face = 0; face < faces; face++)
+      {
+        const int face_material = face_material_indices[face];
+
+        const int length = face_lengths[face];
+
+        if (face_material == pass_material)
+        {
+          int first_index = 0, previous_index = 0;
+          float first_row = 0.0f, first_column = 0.0f, first_opacity = 0.0f, first_red = 0.0f, first_green = 0.0f, first_blue = 0.0f;
+          float previous_row = 0.0f, previous_column = 0.0f, previous_opacity = 0.0f, previous_red = 0.0f, previous_green = 0.0f, previous_blue = 0.0f;
+
+          for (int vertex = 0; vertex < length; vertex++)
+          {
+            int vertex_index = face_vertex_indices[read_index];
+
+            const float *vertex_data = &vertices[vertex_index * 7];
+            int next_index;
+            const int next_texture_coordinate_index = face_texture_coordinate_indices[read_index];
+            const float next_row = texture_coordinates[next_texture_coordinate_index * 2];
+            const float next_column = texture_coordinates[next_texture_coordinate_index * 2 + 1];
+            const float next_opacity = vertex_data[6];
+            const float next_red = vertex_data[3];
+            const float next_green = vertex_data[4];
+            const float next_blue = vertex_data[5];
+
+            read_index++;
+
+            if ((*locations) == NULL)
+            {
+              *locations = malloc_or_exit("Failed to allocate memory for vertex locations.", sizeof(float) * ((*target_vertices) + 1) * 3);
+
+              (*locations)[0] = vertex_data[0];
+              (*locations)[1] = vertex_data[1];
+              (*locations)[2] = vertex_data[2];
+
+              (*target_vertices)++;
+
+              next_index = 0;
+            }
+            else
+            {
+              for (next_index = 0; next_index < (*target_vertices); next_index++)
+              {
+                if ((*locations)[next_index * 3] == vertex_data[0] && (*locations)[next_index * 3 + 1] == vertex_data[1] && (*locations)[next_index * 3 + 2] == vertex_data[2])
+                {
+                  break;
+                }
+              }
+
+              if (next_index == (*target_vertices))
+              {
+                realloc_or_exit("Failed to reallocate memory for vertex locations.", (void **)locations, sizeof(float) * ((*target_vertices) + 1) * 3);
+
+                (*locations)[(*target_vertices) * 3] = vertex_data[0];
+                (*locations)[(*target_vertices) * 3 + 1] = vertex_data[1];
+                (*locations)[(*target_vertices) * 3 + 2] = vertex_data[2];
+
+                (*target_vertices)++;
+              }
+            }
+
+            switch (vertex)
+            {
+            case 0:
+              first_index = next_index;
+              first_row = next_row;
+              first_column = next_column;
+              first_opacity = next_opacity;
+              first_red = next_red;
+              first_green = next_green;
+              first_blue = next_blue;
+              break;
+
+            case 1:
+              break;
+
+            default:
+              (*indices)[write_index] = first_index;
+              (*rows)[write_index] = first_row;
+              (*columns)[write_index] = first_column;
+
+              if (opacities != NULL)
+              {
+                (*opacities)[write_index] = first_opacity;
+              }
+
+              (*reds)[write_index] = first_red;
+              (*greens)[write_index] = first_green;
+              (*blues)[write_index] = first_blue;
+
+              write_index++;
+
+              (*indices)[write_index] = previous_index;
+              (*rows)[write_index] = previous_row;
+              (*columns)[write_index] = previous_column;
+
+              if (opacities != NULL)
+              {
+                (*opacities)[write_index] = previous_opacity;
+              }
+
+              (*reds)[write_index] = previous_red;
+              (*greens)[write_index] = previous_green;
+              (*blues)[write_index] = previous_blue;
+
+              write_index++;
+
+              (*indices)[write_index] = next_index;
+              (*rows)[write_index] = next_row;
+              (*columns)[write_index] = next_column;
+
+              if (opacities != NULL)
+              {
+                (*opacities)[write_index] = next_opacity;
+              }
+
+              (*reds)[write_index] = next_red;
+              (*greens)[write_index] = next_green;
+              (*blues)[write_index] = next_blue;
+
+              write_index++;
+              break;
+            }
+
+            previous_index = next_index;
+            previous_row = next_row;
+            previous_column = next_column;
+            previous_opacity = next_opacity;
+            previous_red = next_red;
+            previous_green = next_green;
+            previous_blue = next_blue;
+          }
+
+          (*triangles)[pass]++;
+        }
+        else
+        {
+          read_index += length;
+        }
+      }
+    }
+  }
 }
 
 static void obj_end_object()
@@ -741,342 +1090,621 @@ static void obj_end_object()
     }
     else
     {
-      int *written_texture_indices = NULL;
-      int written_texture_indices_length = 0;
-      int number_of_triangulated_indices = 0;
+      int opaque_cutout_vertices = 0;
+      float *opaque_cutout_locations = NULL;
+      int opaque_passes = 0;
+      int *opaque_materials = NULL;
+      int *opaque_triangles = NULL;
+      int total_opaque_triangles = 0;
+      int *opaque_indices = NULL;
+      float *opaque_rows = NULL;
+      float *opaque_columns = NULL;
+      float *opaque_reds = NULL;
+      float *opaque_greens = NULL;
+      float *opaque_blues = NULL;
+      int cutout_passes = 0;
+      int *cutout_materials = NULL;
+      int *cutout_triangles = NULL;
+      int total_cutout_triangles = 0;
+      int *cutout_indices = NULL;
+      float *cutout_rows = NULL;
+      float *cutout_columns = NULL;
+      float *cutout_opacities = NULL;
+      float *cutout_reds = NULL;
+      float *cutout_greens = NULL;
+      float *cutout_blues = NULL;
+      int additive_blended_vertices = 0;
+      float *additive_blended_locations = NULL;
+      int additive_passes = 0;
+      int *additive_materials = NULL;
+      int *additive_triangles = NULL;
+      int total_additive_triangles = 0;
+      int *additive_indices = NULL;
+      float *additive_rows = NULL;
+      float *additive_columns = NULL;
+      float *additive_reds = NULL;
+      float *additive_greens = NULL;
+      float *additive_blues = NULL;
+      int blended_passes = 0;
+      int *blended_materials = NULL;
+      int *blended_triangles = NULL;
+      int total_blended_triangles = 0;
+      int *blended_indices = NULL;
+      float *blended_rows = NULL;
+      float *blended_columns = NULL;
+      float *blended_opacities = NULL;
+      float *blended_reds = NULL;
+      float *blended_greens = NULL;
+      float *blended_blues = NULL;
 
-      for (int face_index = 0; face_index < faces; face_index++)
+      for (int face = 0; face < faces; face++)
       {
-        number_of_triangulated_indices += (face_lengths[face_index] - 2) * 3;
+        const int material = face_material_indices[face];
 
-        const int face_material_index = face_material_indices[face_index];
-        const int face_texture_index = material_diffuse_texture_indices[face_material_index];
+        int *target_passes;
+        int **target_materials;
+        int *total_target_triangles;
 
-        bool found = false;
-
-        for (int written_texture_indices_index = 0; written_texture_indices_index < written_texture_indices_length; written_texture_indices_index++)
+        switch (material_types[material])
         {
-          if (written_texture_indices[written_texture_indices_index] == face_texture_index)
-          {
-            found = true;
-            break;
-          }
+        case MATERIAL_TYPE_OPAQUE:
+          target_passes = &opaque_passes;
+          target_materials = &opaque_materials;
+          total_target_triangles = &total_opaque_triangles;
+          break;
+
+        case MATERIAL_TYPE_CUTOUT:
+          target_passes = &cutout_passes;
+          target_materials = &cutout_materials;
+          total_target_triangles = &total_cutout_triangles;
+          break;
+
+        case MATERIAL_TYPE_ADDITIVE:
+          target_passes = &additive_passes;
+          target_materials = &additive_materials;
+          total_target_triangles = &total_additive_triangles;
+          break;
+
+        case MATERIAL_TYPE_BLENDED:
+          target_passes = &blended_passes;
+          target_materials = &blended_materials;
+          total_target_triangles = &total_blended_triangles;
+          break;
+
+        default:
+          fprintf(stderr, "Unimplemented material type %d\n.", material_types[material]);
+          exit(1);
         }
 
-        if (!found)
+        if ((*target_materials) == NULL)
         {
-          written_texture_indices_length++;
+          *target_materials = malloc_or_exit("Failed to allocate memory for a list of materials.", sizeof(int));
+          *target_passes = 1;
 
-          if (written_texture_indices == NULL)
-          {
-            written_texture_indices = malloc_or_exit("Failed to allocate a list of written texture indices.", sizeof(int));
-          }
-          else
-          {
-            realloc_or_exit("Failed to allocate a list of written texture indices.", (void **)&written_texture_indices, sizeof(int) * written_texture_indices_length);
-          }
-
-          written_texture_indices[written_texture_indices_length - 1] = face_texture_index;
+          (*target_materials)[0] = material;
         }
-      }
-
-      int *remapped_vertex_indices = malloc_or_exit("Failed to allocate memory for a list of remapped vertex indices.", sizeof(int) * vertices_length);
-      float *remapped_reds = malloc_or_exit("Failed to allocate memory for a list of remapped reds.", sizeof(float) * number_of_triangulated_indices);
-      float *remapped_greens = malloc_or_exit("Failed to allocate memory for a list of remapped greens.", sizeof(float) * number_of_triangulated_indices);
-      float *remapped_blues = malloc_or_exit("Failed to allocate memory for a list of remapped blues.", sizeof(float) * number_of_triangulated_indices);
-      float *remapped_opacities = malloc_or_exit("Failed to allocate memory for a list of remapped opacities.", sizeof(float) * number_of_triangulated_indices);
-
-      for (int remapped_vertex_indices_index = 0; remapped_vertex_indices_index < vertices_length; remapped_vertex_indices_index++)
-      {
-        remapped_vertex_indices[remapped_vertex_indices_index] = -1;
-      }
-
-      float *remapped_vertices = NULL;
-      int remapped_vertices_length = 0;
-
-      for (int written_texture_indices_index = 0; written_texture_indices_index < written_texture_indices_length; written_texture_indices_index++)
-      {
-        const int written_texture_index = written_texture_indices[written_texture_indices_index];
-
-        int index = 0;
-
-        for (int face_index = 0; face_index < faces; face_index++)
+        else
         {
-          int vertex_count = face_lengths[face_index];
 
-          if (vertex_count < 3)
+          int pass;
+
+          for (pass = 0; pass < (*target_passes); pass++)
           {
-            fprintf(stderr, "Faces must have at least 3 vertices.\n");
-            exit(1);
-          }
-          else
-          {
-            const int face_material_index = face_material_indices[face_index];
-            const int face_texture_index = material_diffuse_texture_indices[face_material_index];
-
-            if (face_texture_index == written_texture_index)
+            if ((*target_materials)[pass] == material)
             {
-              for (int vertex = 0; vertex < vertex_count; vertex++)
-              {
-                int face_vertex_index = face_vertex_indices[index];
-
-                if (remapped_vertex_indices[face_vertex_index] == -1)
-                {
-                  float x = vertices[face_vertex_index * 7];
-                  float y = vertices[face_vertex_index * 7 + 1];
-                  float z = vertices[face_vertex_index * 7 + 2];
-
-                  for (int remapped_vertex_index = 0; remapped_vertex_index < remapped_vertices_length; remapped_vertex_index++)
-                  {
-                    if (remapped_vertices[remapped_vertex_index * 3] == x && remapped_vertices[remapped_vertex_index * 3 + 1] == y && remapped_vertices[remapped_vertex_index * 3 + 2] == z)
-                    {
-                      remapped_vertex_indices[face_vertex_index] = remapped_vertex_index;
-                      break;
-                    }
-                  }
-
-                  if (remapped_vertex_indices[face_vertex_index] == -1)
-                  {
-                    remapped_vertices_length++;
-
-                    if (remapped_vertices == NULL)
-                    {
-                      remapped_vertices = malloc_or_exit("Failed to allocate a list of remapped vertices.", sizeof(float) * 3);
-                    }
-                    else
-                    {
-                      realloc_or_exit("Failed to allocate a list of remapped vertices.", (void **)&remapped_vertices, sizeof(float) * 3 * remapped_vertices_length);
-                    }
-
-                    remapped_vertices[(remapped_vertices_length - 1) * 3] = x;
-                    remapped_vertices[(remapped_vertices_length - 1) * 3 + 1] = y;
-                    remapped_vertices[(remapped_vertices_length - 1) * 3 + 2] = z;
-
-                    remapped_vertex_indices[face_vertex_index] = remapped_vertices_length - 1;
-                  }
-                }
-
-                index++;
-              }
-            }
-            else
-            {
-              index += vertex_count;
+              break;
             }
           }
-        }
-      }
 
-      write("Failed to write the header of an object's vertices.", "\nstatic const vector %s_%s_%s_vertices[] = {", name_prefix, name, object_name);
-
-      for (int remapped_vertex_index = 0; remapped_vertex_index < remapped_vertices_length; remapped_vertex_index++)
-      {
-        write("Failed to write an object's vertices.", "%s{%ff, %ff, %ff}", remapped_vertex_index ? ", " : "", remapped_vertices[remapped_vertex_index * 3], remapped_vertices[remapped_vertex_index * 3 + 1], remapped_vertices[remapped_vertex_index * 3 + 2]);
-      }
-
-      write("Failed to write the footer of an object's vertices and the header of its vertex indices.", "};\n\nstatic const index %s_%s_%s_indices[] = {", name_prefix, name, object_name);
-
-      bool first = true;
-      int remapped_colors = 0;
-
-      for (int written_texture_indices_index = 0; written_texture_indices_index < written_texture_indices_length; written_texture_indices_index++)
-      {
-        const int written_texture_index = written_texture_indices[written_texture_indices_index];
-
-        int index = 0;
-
-        for (int face_index = 0; face_index < faces; face_index++)
-        {
-          const int vertex_count = face_lengths[face_index];
-
-          const int face_material_index = face_material_indices[face_index];
-          const int face_texture_index = material_diffuse_texture_indices[face_material_index];
-
-          if (face_texture_index == written_texture_index)
+          if (pass == (*target_passes))
           {
-            int first_index = face_vertex_indices[index++];
-            int first_remapped_index = remapped_vertex_indices[first_index];
-
-            int previous_index = face_vertex_indices[index++];
-            int previous_remapped_index = remapped_vertex_indices[previous_index];
-
-            for (int triangle = 0; triangle < vertex_count - 2; triangle++)
-            {
-              int next_index = face_vertex_indices[index++];
-
-              remapped_reds[remapped_colors] = vertices[first_index * 7 + 3];
-              remapped_greens[remapped_colors] = vertices[first_index * 7 + 4];
-              remapped_blues[remapped_colors] = vertices[first_index * 7 + 5];
-              remapped_opacities[remapped_colors] = vertices[first_index * 7 + 6];
-              remapped_colors++;
-
-              remapped_reds[remapped_colors] = vertices[previous_index * 7 + 3];
-              remapped_greens[remapped_colors] = vertices[previous_index * 7 + 4];
-              remapped_blues[remapped_colors] = vertices[previous_index * 7 + 5];
-              remapped_opacities[remapped_colors] = vertices[previous_index * 7 + 6];
-              remapped_colors++;
-
-              int next_remapped_index = remapped_vertex_indices[next_index];
-
-              remapped_reds[remapped_colors] = vertices[next_index * 7 + 3];
-              remapped_greens[remapped_colors] = vertices[next_index * 7 + 4];
-              remapped_blues[remapped_colors] = vertices[next_index * 7 + 5];
-              remapped_opacities[remapped_colors] = vertices[next_index * 7 + 6];
-              remapped_colors++;
-
-              write("Failed to write an object's vertex indices.", "%s%d, %d, %d", first ? "" : ", ", first_remapped_index, previous_remapped_index, next_remapped_index);
-              first = false;
-
-              previous_index = next_index;
-              previous_remapped_index = next_remapped_index;
-            }
-          }
-          else
-          {
-            index += vertex_count;
-          }
-        }
-      }
-
-      write("Failed to write the footer of an object's vertex indices and the header of its texture coordinates.", "};\n\nstatic const f32 %s_%s_%s_texture_coordinates[] = {", name_prefix, name, object_name);
-
-      first = true;
-
-      for (int written_texture_indices_index = 0; written_texture_indices_index < written_texture_indices_length; written_texture_indices_index++)
-      {
-        const int written_texture_index = written_texture_indices[written_texture_indices_index];
-
-        int index = 0;
-
-        for (int face_index = 0; face_index < faces; face_index++)
-        {
-          int vertices = face_lengths[face_index];
-
-          const int face_material_index = face_material_indices[face_index];
-          const int face_texture_index = material_diffuse_texture_indices[face_material_index];
-
-          if (face_texture_index == written_texture_index)
-          {
-            int first_texture_coordinate_index = face_texture_coordinate_indices[index++] * 2;
-            float first_u = texture_coordinates[first_texture_coordinate_index];
-            float first_v = 1.0f - texture_coordinates[first_texture_coordinate_index + 1];
-
-            int previous_texture_coordinate_index = face_texture_coordinate_indices[index++] * 2;
-            float previous_u = texture_coordinates[previous_texture_coordinate_index];
-            float previous_v = 1.0f - texture_coordinates[previous_texture_coordinate_index + 1];
-
-            for (int triangle = 0; triangle < vertices - 2; triangle++)
-            {
-              int next_texture_coordinate_index = face_texture_coordinate_indices[index++] * 2;
-              float next_u = texture_coordinates[next_texture_coordinate_index];
-              float next_v = 1.0 - texture_coordinates[next_texture_coordinate_index + 1];
-
-              write("Failed to write an object's texture coordinates.", "%s%f, %f, %f, %f, %f, %f", first ? "" : ", ", first_v, first_u, previous_v, previous_u, next_v, next_u);
-              first = false;
-
-              previous_u = next_u;
-              previous_v = next_v;
-            }
-          }
-          else
-          {
-            index += vertices;
-          }
-        }
-      }
-
-      write("Failed to write the footer of an object's texture coordinates.", "};\n");
-
-      first = true;
-
-      for (int written_texture_indices_index = 0; written_texture_indices_index < written_texture_indices_length; written_texture_indices_index++)
-      {
-        const int written_texture_index = written_texture_indices[written_texture_indices_index];
-
-        if (!textures_imported[written_texture_index])
-        {
-          write("Failed to write a texture import.", "%sextern const texture * %s_%s();\n", first ? "\n" : "", texture_prefix, texture_variable_names[written_texture_index]);
-          textures_imported[written_texture_index] = true;
-          first = false;
-        }
-      }
-
-      write("Failed to write the header of an object's texture images.", "\nstatic texture_factory * const %s_%s_%s_textures[] = {", name_prefix, name, object_name);
-
-      for (int written_texture_indices_index = 0; written_texture_indices_index < written_texture_indices_length; written_texture_indices_index++)
-      {
-        write("Failed to write an object's texture images.", "%s%s_%s", written_texture_indices_index ? ", " : "", texture_prefix, texture_variable_names[written_texture_indices[written_texture_indices_index]]);
-      }
-
-      write("Failed to write the footer of an object's textures and the header of its triangle counts per textures.", "};\n\nconst quantity %s_%s_%s_triangles[] = {", name_prefix, name, object_name);
-
-      for (int written_texture_indices_index = 0; written_texture_indices_index < written_texture_indices_length; written_texture_indices_index++)
-      {
-        const int written_texture_index = written_texture_indices[written_texture_indices_index];
-
-        int total = 0;
-
-        for (int face_index = 0; face_index < faces; face_index++)
-        {
-          int vertices = face_lengths[face_index];
-
-          const int face_material_index = face_material_indices[face_index];
-          const int face_texture_index = material_diffuse_texture_indices[face_material_index];
-
-          if (face_texture_index == written_texture_index)
-          {
-            total += vertices - 2;
+            realloc_or_exit("Failed to reallocate memory for a list of materials.", (void **)target_materials, ((*target_passes) + 1) * sizeof(int));
+            (*target_materials)[pass] = material;
+            (*target_passes)++;
           }
         }
 
-        write("Failed to write the number of triangles using a texture.", "%s%d", written_texture_indices_index ? ", " : "", total);
+        // TODO: drop degenerate triangles
+        // TODO: throw if non-convex
+        // TODO: throw if non-planar
+
+        (*total_target_triangles) += face_lengths[face] - 2;
       }
 
-      write("Failed to write the footer of an object's triangle counts per textures and the header of its reds.", "};\n\nconst f32 %s_%s_%s_reds[] = {", name_prefix, name, object_name);
+      obj_type(
+          &opaque_cutout_vertices,
+          &opaque_cutout_locations,
+          opaque_passes,
+          opaque_materials,
+          &opaque_triangles,
+          total_opaque_triangles,
+          &opaque_indices,
+          &opaque_rows,
+          &opaque_columns,
+          NULL,
+          &opaque_reds,
+          &opaque_greens,
+          &opaque_blues);
 
-      for (int index = 0; index < number_of_triangulated_indices; index++)
+      obj_type(
+          &opaque_cutout_vertices,
+          &opaque_cutout_locations,
+          cutout_passes,
+          cutout_materials,
+          &cutout_triangles,
+          total_cutout_triangles,
+          &cutout_indices,
+          &cutout_rows,
+          &cutout_columns,
+          &cutout_opacities,
+          &cutout_reds,
+          &cutout_greens,
+          &cutout_blues);
+
+      obj_type(
+          &additive_blended_vertices,
+          &additive_blended_locations,
+          additive_passes,
+          additive_materials,
+          &additive_triangles,
+          total_additive_triangles,
+          &additive_indices,
+          &additive_rows,
+          &additive_columns,
+          NULL,
+          &additive_reds,
+          &additive_greens,
+          &additive_blues);
+
+      obj_type(
+          &additive_blended_vertices,
+          &additive_blended_locations,
+          blended_passes,
+          blended_materials,
+          &blended_triangles,
+          total_blended_triangles,
+          &blended_indices,
+          &blended_rows,
+          &blended_columns,
+          &blended_opacities,
+          &blended_reds,
+          &blended_greens,
+          &blended_blues);
+
+      write_vector_array("Failed to write opaque/cutout locations.", opaque_cutout_locations, opaque_cutout_vertices, "%s_%s_%s_opaque_cutout_locations", name_prefix, name, object_name);
+      write_texture_reference_array("Failed to write opaque textures.", opaque_materials, opaque_passes, "%s_%s_%s_opaque_textures", name_prefix, name, object_name);
+      write_int_array("Failed to write opaque triangles.", opaque_triangles, opaque_passes, "quantity", "%s_%s_%s_opaque_triangles", name_prefix, name, object_name);
+      write_int_array("Failed to write opaque indices.", opaque_indices, total_opaque_triangles * 3, "index", "%s_%s_%s_opaque_indices", name_prefix, name, object_name);
+      write_float_array("Failed to write opaque rows.", opaque_rows, total_opaque_triangles * 3, "%s_%s_%s_opaque_rows", name_prefix, name, object_name);
+      write_float_array("Failed to write opaque columns.", opaque_columns, total_opaque_triangles * 3, "%s_%s_%s_opaque_columns", name_prefix, name, object_name);
+      write_float_array("Failed to write opaque reds.", opaque_rows, total_opaque_triangles * 3, "%s_%s_%s_opaque_reds", name_prefix, name, object_name);
+      write_float_array("Failed to write opaque greens.", opaque_rows, total_opaque_triangles * 3, "%s_%s_%s_opaque_greens", name_prefix, name, object_name);
+      write_float_array("Failed to write opaque blues.", opaque_rows, total_opaque_triangles * 3, "%s_%s_%s_opaque_blues", name_prefix, name, object_name);
+      write_texture_reference_array("Failed to write cutout textures.", cutout_materials, cutout_passes, "%s_%s_%s_cutout_textures", name_prefix, name, object_name);
+      write_int_array("Failed to write cutout triangles.", cutout_triangles, cutout_passes, "quantity", "%s_%s_%s_cutout_triangles", name_prefix, name, object_name);
+      write_int_array("Failed to write cutout indices.", cutout_indices, total_cutout_triangles * 3, "index", "%s_%s_%s_cutout_indices", name_prefix, name, object_name);
+      write_float_array("Failed to write cutout rows.", cutout_rows, total_cutout_triangles * 3, "%s_%s_%s_cutout_rows", name_prefix, name, object_name);
+      write_float_array("Failed to write cutout columns.", cutout_columns, total_cutout_triangles * 3, "%s_%s_%s_cutout_columns", name_prefix, name, object_name);
+      write_float_array("Failed to write cutout opacities.", cutout_rows, total_cutout_triangles * 3, "%s_%s_%s_cutout_opacities", name_prefix, name, object_name);
+      write_float_array("Failed to write cutout reds.", cutout_rows, total_cutout_triangles * 3, "%s_%s_%s_cutout_reds", name_prefix, name, object_name);
+      write_float_array("Failed to write cutout greens.", cutout_rows, total_cutout_triangles * 3, "%s_%s_%s_cutout_greens", name_prefix, name, object_name);
+      write_float_array("Failed to write cutout blues.", cutout_rows, total_cutout_triangles * 3, "%s_%s_%s_cutout_blues", name_prefix, name, object_name);
+      write_vector_array("Failed to write additive/blended locations.", additive_blended_locations, additive_blended_vertices, "%s_%s_%s_additive_blended_locations", name_prefix, name, object_name);
+      write_texture_reference_array("Failed to write additive textures.", additive_materials, additive_passes, "%s_%s_%s_additive_textures", name_prefix, name, object_name);
+      write_int_array("Failed to write additive triangles.", additive_triangles, additive_passes, "quantity", "%s_%s_%s_additive_triangles", name_prefix, name, object_name);
+      write_int_array("Failed to write additive indices.", additive_indices, total_additive_triangles * 3, "index", "%s_%s_%s_additive_indices", name_prefix, name, object_name);
+      write_float_array("Failed to write additive rows.", additive_rows, total_additive_triangles * 3, "%s_%s_%s_additive_rows", name_prefix, name, object_name);
+      write_float_array("Failed to write additive columns.", additive_columns, total_additive_triangles * 3, "%s_%s_%s_additive_columns", name_prefix, name, object_name);
+      write_float_array("Failed to write additive reds.", additive_rows, total_additive_triangles * 3, "%s_%s_%s_additive_reds", name_prefix, name, object_name);
+      write_float_array("Failed to write additive greens.", additive_rows, total_additive_triangles * 3, "%s_%s_%s_additive_greens", name_prefix, name, object_name);
+      write_float_array("Failed to write additive blues.", additive_rows, total_additive_triangles * 3, "%s_%s_%s_additive_blues", name_prefix, name, object_name);
+      write_texture_reference_array("Failed to write blended textures.", blended_materials, blended_passes, "%s_%s_%s_blended_textures", name_prefix, name, object_name);
+      write_int_array("Failed to write blended triangles.", blended_triangles, blended_passes, "quantity", "%s_%s_%s_blended_triangles", name_prefix, name, object_name);
+      write_int_array("Failed to write blended indices.", blended_indices, total_blended_triangles * 3, "index", "%s_%s_%s_blended_indices", name_prefix, name, object_name);
+      write_float_array("Failed to write blended rows.", blended_rows, total_blended_triangles * 3, "%s_%s_%s_blended_rows", name_prefix, name, object_name);
+      write_float_array("Failed to write blended columns.", blended_columns, total_blended_triangles * 3, "%s_%s_%s_blended_columns", name_prefix, name, object_name);
+      write_float_array("Failed to write blended opacities.", blended_rows, total_blended_triangles * 3, "%s_%s_%s_blended_opacities", name_prefix, name, object_name);
+      write_float_array("Failed to write blended reds.", blended_rows, total_blended_triangles * 3, "%s_%s_%s_blended_reds", name_prefix, name, object_name);
+      write_float_array("Failed to write blended greens.", blended_rows, total_blended_triangles * 3, "%s_%s_%s_blended_greens", name_prefix, name, object_name);
+      write_float_array("Failed to write blended blues.", blended_rows, total_blended_triangles * 3, "%s_%s_%s_blended_blues", name_prefix, name, object_name);
+
+      write("Failed to write an object's header.", "static const mesh * const %s_%s_%s_mesh = &((mesh){%d", name_prefix, name, object_name, opaque_cutout_vertices);
+
+      if (opaque_cutout_locations == NULL)
       {
-        write("Failed to write a red.", "%s%f", index ? ", " : "", remapped_reds[index]);
+        write("Failed to write an object's opaque and cutout locations.", ", NULL");
       }
-
-      write("Failed to write the footer of an object's reds and the header of its greens.", "};\n\nconst f32 %s_%s_%s_greens[] = {", name_prefix, name, object_name);
-
-      for (int index = 0; index < number_of_triangulated_indices; index++)
+      else
       {
-        write("Failed to write a green.", "%s%f", index ? ", " : "", remapped_greens[index]);
+        write("Failed to write an object's opaque and cutout locations.", ", %s_%s_%s_opaque_cutout_locations", name_prefix, name, object_name);
       }
 
-      write("Failed to write the footer of an object's greens and the header of its blues.", "};\n\nconst f32 %s_%s_%s_blues[] = {", name_prefix, name, object_name);
+      write("Failed to write an object's opaque passes.", ", %d", opaque_passes);
 
-      for (int index = 0; index < number_of_triangulated_indices; index++)
+      if (opaque_materials == NULL)
       {
-        write("Failed to write a blue.", "%s%f", index ? ", " : "", remapped_blues[index]);
+        write("Failed to write an object's opaque textures.", ", NULL");
       }
-
-      write("Failed to write the footer of an object's blues and the header of its opacities.", "};\n\nconst f32 %s_%s_%s_opacities[] = {", name_prefix, name, object_name);
-
-      for (int index = 0; index < number_of_triangulated_indices; index++)
+      else
       {
-        write("Failed to write an opacity.", "%s%f", index ? ", " : "", remapped_opacities[index]);
+        write("Failed to write an object's opaque textures.", ", %s_%s_%s_opaque_textures", name_prefix, name, object_name);
       }
 
-      write("Failed to write the footer.", "};\n\nstatic const mesh %s_%s_%s_mesh = {%d, %s_%s_%s_vertices, %d, %s_%s_%s_textures, %s_%s_%s_triangles, %s_%s_%s_indices, %s_%s_%s_texture_coordinates, %s_%s_%s_reds, %s_%s_%s_greens, %s_%s_%s_blues, %s_%s_%s_opacities};\n\nconst mesh * %s_%s_%s()\n{\n  return &%s_%s_%s_mesh;}\n", name_prefix, name, object_name, remapped_vertices_length, name_prefix, name, object_name, written_texture_indices_length, name_prefix, name, object_name, name_prefix, name, object_name, name_prefix, name, object_name, name_prefix, name, object_name, name_prefix, name, object_name, name_prefix, name, object_name, name_prefix, name, object_name, name_prefix, name, object_name, name_prefix, name, object_name, name_prefix, name, object_name, name_prefix, name, object_name);
+      if (opaque_triangles == NULL)
+      {
+        write("Failed to write an object's opaque triangles.", ", NULL");
+      }
+      else
+      {
+        write("Failed to write an object's opaque triangles.", ", %s_%s_%s_opaque_triangles", name_prefix, name, object_name);
+      }
 
-      // TODO: synchronize names with headers
+      if (opaque_indices == NULL)
+      {
+        write("Failed to write an object's opaque indices.", ", NULL");
+      }
+      else
+      {
+        write("Failed to write an object's opaque indices.", ", %s_%s_%s_opaque_indices", name_prefix, name, object_name);
+      }
 
-      free(remapped_reds);
-      free(remapped_greens);
-      free(remapped_blues);
-      free(remapped_opacities);
-      free(remapped_vertices);
-      free(remapped_vertex_indices);
-      free(written_texture_indices);
+      if (opaque_rows == NULL)
+      {
+        write("Failed to write an object's opaque rows.", ", NULL");
+      }
+      else
+      {
+        write("Failed to write an object's opaque rows.", ", %s_%s_%s_opaque_rows", name_prefix, name, object_name);
+      }
 
-      free(face_texture_coordinate_indices);
-      face_texture_coordinate_indices = NULL;
+      if (opaque_columns == NULL)
+      {
+        write("Failed to write an object's opaque columns.", ", NULL");
+      }
+      else
+      {
+        write("Failed to write an object's opaque columns.", ", %s_%s_%s_opaque_columns", name_prefix, name, object_name);
+      }
 
-      free(face_material_indices);
-      face_material_indices = NULL;
+      if (opaque_reds == NULL)
+      {
+        write("Failed to write an object's opaque reds.", ", NULL");
+      }
+      else
+      {
+        write("Failed to write an object's opaque reds.", ", %s_%s_%s_opaque_reds", name_prefix, name, object_name);
+      }
+
+      if (opaque_greens == NULL)
+      {
+        write("Failed to write an object's opaque greens.", ", NULL");
+      }
+      else
+      {
+        write("Failed to write an object's opaque greens.", ", %s_%s_%s_opaque_greens", name_prefix, name, object_name);
+      }
+
+      if (opaque_blues == NULL)
+      {
+        write("Failed to write an object's opaque blues.", ", NULL");
+      }
+      else
+      {
+        write("Failed to write an object's opaque blues.", ", %s_%s_%s_opaque_blues", name_prefix, name, object_name);
+      }
+
+      write("Failed to write an object's cutout passes.", ", %d", cutout_passes);
+
+      if (cutout_materials == NULL)
+      {
+        write("Failed to write an object's cutout textures.", ", NULL");
+      }
+      else
+      {
+        write("Failed to write an object's cutout textures.", ", %s_%s_%s_cutout_textures", name_prefix, name, object_name);
+      }
+
+      if (cutout_triangles == NULL)
+      {
+        write("Failed to write an object's cutout triangles.", ", NULL");
+      }
+      else
+      {
+        write("Failed to write an object's cutout triangles.", ", %s_%s_%s_cutout_triangles", name_prefix, name, object_name);
+      }
+
+      if (cutout_indices == NULL)
+      {
+        write("Failed to write an object's cutout indices.", ", NULL");
+      }
+      else
+      {
+        write("Failed to write an object's cutout indices.", ", %s_%s_%s_cutout_indices", name_prefix, name, object_name);
+      }
+
+      if (cutout_rows == NULL)
+      {
+        write("Failed to write an object's cutout rows.", ", NULL");
+      }
+      else
+      {
+        write("Failed to write an object's cutout rows.", ", %s_%s_%s_cutout_rows", name_prefix, name, object_name);
+      }
+
+      if (cutout_columns == NULL)
+      {
+        write("Failed to write an object's cutout columns.", ", NULL");
+      }
+      else
+      {
+        write("Failed to write an object's cutout columns.", ", %s_%s_%s_cutout_columns", name_prefix, name, object_name);
+      }
+
+      if (cutout_opacities == NULL)
+      {
+        write("Failed to write an object's cutout opacities.", ", NULL");
+      }
+      else
+      {
+        write("Failed to write an object's cutout opacities.", ", %s_%s_%s_cutout_opacities", name_prefix, name, object_name);
+      }
+
+      if (cutout_reds == NULL)
+      {
+        write("Failed to write an object's cutout reds.", ", NULL");
+      }
+      else
+      {
+        write("Failed to write an object's cutout reds.", ", %s_%s_%s_cutout_reds", name_prefix, name, object_name);
+      }
+
+      if (cutout_greens == NULL)
+      {
+        write("Failed to write an object's cutout greens.", ", NULL");
+      }
+      else
+      {
+        write("Failed to write an object's cutout greens.", ", %s_%s_%s_cutout_greens", name_prefix, name, object_name);
+      }
+
+      if (cutout_blues == NULL)
+      {
+        write("Failed to write an object's cutout blues.", ", NULL");
+      }
+      else
+      {
+        write("Failed to write an object's cutout blues.", ", %s_%s_%s_cutout_blues", name_prefix, name, object_name);
+      }
+
+      write("Failed to write an object's additive and blended vertices.", ", %d", additive_blended_vertices);
+
+      if (additive_blended_locations == NULL)
+      {
+        write("Failed to write an object's additive and blended locations.", ", NULL");
+      }
+      else
+      {
+        write("Failed to write an object's additive and blended locations.", ", %s_%s_%s_additive_blended_locations", name_prefix, name, object_name);
+      }
+
+      write("Failed to write an object's additive passes.", ", %d", additive_passes);
+
+      if (additive_materials == NULL)
+      {
+        write("Failed to write an object's additive textures.", ", NULL");
+      }
+      else
+      {
+        write("Failed to write an object's additive textures.", ", %s_%s_%s_additive_textures", name_prefix, name, object_name);
+      }
+
+      if (additive_triangles == NULL)
+      {
+        write("Failed to write an object's additive triangles.", ", NULL");
+      }
+      else
+      {
+        write("Failed to write an object's additive triangles.", ", %s_%s_%s_additive_triangles", name_prefix, name, object_name);
+      }
+
+      if (additive_indices == NULL)
+      {
+        write("Failed to write an object's additive indices.", ", NULL");
+      }
+      else
+      {
+        write("Failed to write an object's additive indices.", ", %s_%s_%s_additive_indices", name_prefix, name, object_name);
+      }
+
+      if (additive_rows == NULL)
+      {
+        write("Failed to write an object's additive rows.", ", NULL");
+      }
+      else
+      {
+        write("Failed to write an object's additive rows.", ", %s_%s_%s_additive_rows", name_prefix, name, object_name);
+      }
+
+      if (additive_columns == NULL)
+      {
+        write("Failed to write an object's additive columns.", ", NULL");
+      }
+      else
+      {
+        write("Failed to write an object's additive columns.", ", %s_%s_%s_additive_columns", name_prefix, name, object_name);
+      }
+
+      if (additive_reds == NULL)
+      {
+        write("Failed to write an object's additive reds.", ", NULL");
+      }
+      else
+      {
+        write("Failed to write an object's additive reds.", ", %s_%s_%s_additive_reds", name_prefix, name, object_name);
+      }
+
+      if (additive_greens == NULL)
+      {
+        write("Failed to write an object's additive greens.", ", NULL");
+      }
+      else
+      {
+        write("Failed to write an object's additive greens.", ", %s_%s_%s_additive_greens", name_prefix, name, object_name);
+      }
+
+      if (additive_blues == NULL)
+      {
+        write("Failed to write an object's additive blues.", ", NULL");
+      }
+      else
+      {
+        write("Failed to write an object's additive blues.", ", %s_%s_%s_additive_blues", name_prefix, name, object_name);
+      }
+
+      write("Failed to write an object's blended passes.", ", %d", blended_passes);
+
+      if (blended_materials == NULL)
+      {
+        write("Failed to write an object's blended textures.", ", NULL");
+      }
+      else
+      {
+        write("Failed to write an object's blended textures.", ", %s_%s_%s_blended_textures", name_prefix, name, object_name);
+      }
+
+      if (blended_triangles == NULL)
+      {
+        write("Failed to write an object's blended triangles.", ", NULL");
+      }
+      else
+      {
+        write("Failed to write an object's blended triangles.", ", %s_%s_%s_blended_triangles", name_prefix, name, object_name);
+      }
+
+      if (blended_indices == NULL)
+      {
+        write("Failed to write an object's blended indices.", ", NULL");
+      }
+      else
+      {
+        write("Failed to write an object's blended indices.", ", %s_%s_%s_blended_indices", name_prefix, name, object_name);
+      }
+
+      if (blended_rows == NULL)
+      {
+        write("Failed to write an object's blended rows.", ", NULL");
+      }
+      else
+      {
+        write("Failed to write an object's blended rows.", ", %s_%s_%s_blended_rows", name_prefix, name, object_name);
+      }
+
+      if (blended_columns == NULL)
+      {
+        write("Failed to write an object's blended columns.", ", NULL");
+      }
+      else
+      {
+        write("Failed to write an object's blended columns.", ", %s_%s_%s_blended_columns", name_prefix, name, object_name);
+      }
+
+      if (blended_opacities == NULL)
+      {
+        write("Failed to write an object's blended opacities.", ", NULL");
+      }
+      else
+      {
+        write("Failed to write an object's blended opacities.", ", %s_%s_%s_blended_opacities", name_prefix, name, object_name);
+      }
+
+      if (blended_reds == NULL)
+      {
+        write("Failed to write an object's blended reds.", ", NULL");
+      }
+      else
+      {
+        write("Failed to write an object's blended reds.", ", %s_%s_%s_blended_reds", name_prefix, name, object_name);
+      }
+
+      if (blended_greens == NULL)
+      {
+        write("Failed to write an object's blended greens.", ", NULL");
+      }
+      else
+      {
+        write("Failed to write an object's blended greens.", ", %s_%s_%s_blended_greens", name_prefix, name, object_name);
+      }
+
+      if (blended_blues == NULL)
+      {
+        write("Failed to write an object's blended blues.", ", NULL");
+      }
+      else
+      {
+        write("Failed to write an object's blended blues.", ", %s_%s_%s_blended_blues", name_prefix, name, object_name);
+      }
+
+      write("Failed to write an object's footer.", "});\nconst mesh * %s_%s_%s()\n{\n  return %s_%s_%s_mesh;\n}\n", name_prefix, name, object_name, name_prefix, name, object_name);
+
+      if (opaque_cutout_locations != NULL)
+      {
+        free(opaque_cutout_locations);
+      }
+
+      if (opaque_materials != NULL)
+      {
+        free(opaque_materials);
+        free(opaque_triangles);
+        free(opaque_indices);
+        free(opaque_rows);
+        free(opaque_columns);
+        free(opaque_reds);
+        free(opaque_greens);
+        free(opaque_blues);
+      }
+
+      if (cutout_materials != NULL)
+      {
+        free(cutout_materials);
+        free(cutout_triangles);
+        free(cutout_indices);
+        free(cutout_rows);
+        free(cutout_columns);
+        free(cutout_opacities);
+        free(cutout_reds);
+        free(cutout_greens);
+        free(cutout_blues);
+      }
+
+      if (additive_blended_locations != NULL)
+      {
+        free(additive_blended_locations);
+      }
+
+      if (additive_materials != NULL)
+      {
+        free(additive_materials);
+        free(additive_triangles);
+        free(additive_indices);
+        free(additive_rows);
+        free(additive_columns);
+        free(additive_reds);
+        free(additive_greens);
+        free(additive_blues);
+      }
+
+      if (blended_materials != NULL)
+      {
+        free(blended_materials);
+        free(blended_triangles);
+        free(blended_indices);
+        free(blended_rows);
+        free(blended_columns);
+        free(blended_opacities);
+        free(blended_reds);
+        free(blended_greens);
+        free(blended_blues);
+      }
     }
 
     free(face_vertex_indices);
@@ -1116,15 +1744,34 @@ static void mtl_end_of_line()
       {
         material_names = malloc_or_exit("Failed to allocate a list of material names.", sizeof(char *));
         material_diffuse_texture_indices = malloc_or_exit("Failed to allocate a list of material diffuse texture indices.", sizeof(int));
+        material_types = malloc_or_exit("Failed to allocate a list of material types.", sizeof(int));
       }
       else
       {
         realloc_or_exit("Failed to allocate a list of material names.", (void **)&material_names, sizeof(char *) * materials);
         realloc_or_exit("Failed to allocate a list of material diffuse texture indices.", (void **)&material_diffuse_texture_indices, sizeof(int) * materials);
+        realloc_or_exit("Failed to allocate a list of material types.", (void **)&material_types, sizeof(int) * materials);
       }
 
       material_names[materials - 1] = string;
       material_diffuse_texture_indices[materials - 1] = -1;
+
+      if (strlen(string) > 9 && strncmp(string, "additive_", 9) == 0)
+      {
+        material_types[materials - 1] = MATERIAL_TYPE_ADDITIVE;
+      }
+      else if (strlen(string) > 7 && strncmp(string, "cutout_", 7) == 0)
+      {
+        material_types[materials - 1] = MATERIAL_TYPE_CUTOUT;
+      }
+      else if (strlen(string) > 8 && strncmp(string, "blended_", 8) == 0)
+      {
+        material_types[materials - 1] = MATERIAL_TYPE_BLENDED;
+      }
+      else
+      {
+        material_types[materials - 1] = MATERIAL_TYPE_OPAQUE;
+      }
 
       string = NULL;
       state = STATE_INITIAL;
@@ -2388,7 +3035,3 @@ int main(int argc, char **argv)
 
   return 0;
 }
-
-// TODO: check triangle sizes - not just edge lengths
-
-// TODO: Add vertex count check

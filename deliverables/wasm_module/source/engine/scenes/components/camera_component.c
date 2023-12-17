@@ -76,7 +76,7 @@ static index allocate(index entity)
   return camera;
 }
 
-static void destroy(component_handle component)
+static void destroy(const component_handle component)
 {
   const index camera = COMPONENT_HANDLE_META(component);
   transforms[camera] = NULL;

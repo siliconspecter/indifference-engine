@@ -7,6 +7,7 @@
 #include "../../primitives/index.h"
 #include "../../primitives/quantity.h"
 #include "../../miscellaneous.h"
+#include "component.h"
 
 /**
  * A callback which is called once per tick while a timer component runs,
@@ -83,5 +84,19 @@ component_handle timer_sub_component(
     timer_component_ticked *const on_tick,
     timer_component_expired *const on_expiry,
     const quantity ticks);
+
+#ifndef DOXYGEN_IGNORE
+
+/**
+ * Called at the very start of the tick event handler.
+ */
+void before_executing_timer_components();
+
+/**
+ * Called by the tick event handler once to advance all timer components.
+ */
+void execute_timer_components();
+
+#endif
 
 #endif

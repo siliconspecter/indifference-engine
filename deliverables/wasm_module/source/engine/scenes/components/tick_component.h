@@ -5,6 +5,7 @@
 #define TICK_COMPONENT_H
 
 #include "../../primitives/index.h"
+#include "component.h"
 
 /**
  * A callback which is called once per tick, exclusive of the tick in which the
@@ -51,5 +52,19 @@ component_handle tick_sub_component(
     const component_handle component,
     const index meta,
     tick_component_ticked *const on_tick);
+
+#ifndef DOXYGEN_IGNORE
+
+/**
+ * Called at the very start of the tick event handler.
+ */
+void before_executing_tick_components();
+
+/**
+ * Called by the tick event handler once to advance all tick components.
+ */
+void execute_tick_components();
+
+#endif
 
 #endif

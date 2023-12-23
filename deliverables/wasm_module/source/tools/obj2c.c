@@ -640,7 +640,7 @@ static void obj_type(
             previous_blue = next_blue;
           }
 
-          (*triangles)[pass]++;
+          (*triangles)[pass] += length - 2;
         }
         else
         {

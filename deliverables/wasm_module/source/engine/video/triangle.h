@@ -118,6 +118,9 @@ void render_opaque_triangle(
  * @param texture_columns The width of the texture in pixel columns.
  * @param texture_columns_minus_one The width of the texture in pixel columns,
  *                                  minus one.
+ * @param texture_opacities The opacity of each pixel within the texture,
+ *                          row-major.  0 is transparent and 1 is opaque.
+ *                          Behavior is undefined outside of this range.
  * @param texture_reds The intensity of the red channel of each pixel within the
  *                     texture, row-major.  0 is dark and 1 is bright.  Values
  *                     may exceed this range.
@@ -127,9 +130,6 @@ void render_opaque_triangle(
  * @param texture_blues The intensity of the blue channel of each pixel within
  *                      the texture, row-major.  0 is dark and 1 is bright.
  *                      Values may exceed this range.
- * @param texture_opacities The opacity of each pixel within the texture,
- *                          row-major.  0 is transparent and 1 is opaque.
- *                          Behavior is undefined outside of this range.
  * @param a_camera_row The number of rows between the top of the current camera
  *                     component's viewport and the triangle's first vertex.
  * @param a_camera_column The number of columns between the left of the current
@@ -196,10 +196,10 @@ void render_cutout_triangle(
     const quantity texture_rows_minus_one,
     const quantity texture_columns,
     const quantity texture_columns_minus_one,
+    const f32 *const texture_opacities,
     const f32 *const texture_reds,
     const f32 *const texture_greens,
     const f32 *const texture_blues,
-    const f32 *const texture_opacities,
     const f32 a_camera_row,
     const f32 a_camera_column,
     const f32 a_depth,
@@ -342,6 +342,9 @@ void render_additive_triangle(
  * @param texture_columns The width of the texture in pixel columns.
  * @param texture_columns_minus_one The width of the texture in pixel columns,
  *                                  minus one.
+ * @param texture_opacities The opacity of each pixel within the texture,
+ *                          row-major.  0 is transparent and 1 is opaque.
+ *                          Behavior is undefined outside of this range.
  * @param texture_reds The intensity of the red channel of each pixel within the
  *                     texture, row-major.  0 is dark and 1 is bright.  Values
  *                     may exceed this range.
@@ -351,9 +354,6 @@ void render_additive_triangle(
  * @param texture_blues The intensity of the blue channel of each pixel within
  *                      the texture, row-major.  0 is dark and 1 is bright.
  *                      Values may exceed this range.
- * @param texture_opacities The opacity of each pixel within the texture,
- *                          row-major.  0 is transparent and 1 is opaque.
- *                          Behavior is undefined outside of this range.
  * @param a_camera_row The number of rows between the top of the current camera
  *                     component's viewport and the triangle's first vertex.
  * @param a_camera_column The number of columns between the left of the current
@@ -420,10 +420,10 @@ void render_blended_triangle(
     const quantity texture_rows_minus_one,
     const quantity texture_columns,
     const quantity texture_columns_minus_one,
+    const f32 *const texture_opacities,
     const f32 *const texture_reds,
     const f32 *const texture_greens,
     const f32 *const texture_blues,
-    const f32 *const texture_opacities,
     const f32 a_camera_row,
     const f32 a_camera_column,
     const f32 a_depth,

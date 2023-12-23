@@ -126,10 +126,10 @@ static void render_opaque_row(
       const index texture_index = clamped_texture_row * texture_columns + clamped_texture_column;
 
       camera_component_depths[camera_index] = source_depth;
+      camera_component_opacities[camera_index] = 1.0f;
       camera_component_reds[camera_index] = accumulators[3] * texture_reds[texture_index];
       camera_component_greens[camera_index] = accumulators[4] * texture_greens[texture_index];
       camera_component_blues[camera_index] = accumulators[5] * texture_blues[texture_index];
-      camera_component_opacities[camera_index] = 1.0f;
     }
 
     add_f32s_f32s(accumulators, per_columns, accumulators, 6);
@@ -285,10 +285,10 @@ static void render_cutout_row(
     const quantity texture_rows_minus_one,
     const quantity texture_columns,
     const quantity texture_columns_minus_one,
+    const f32 *const texture_opacities,
     const f32 *const texture_reds,
     const f32 *const texture_greens,
     const f32 *const texture_blues,
-    const f32 *const texture_opacities,
     const f32 row_accumulators[16],
     const s32 camera_row)
 {
@@ -345,10 +345,10 @@ static void render_cutout_row(
       if (opacity >= 0.5f)
       {
         camera_component_depths[camera_index] = source_depth;
+        camera_component_opacities[camera_index] = 1.0f;
         camera_component_reds[camera_index] = accumulators[4] * texture_reds[texture_index];
         camera_component_greens[camera_index] = accumulators[5] * texture_greens[texture_index];
         camera_component_blues[camera_index] = accumulators[6] * texture_blues[texture_index];
-        camera_component_opacities[camera_index] = 1.0f;
       }
     }
 
@@ -361,10 +361,10 @@ void render_cutout_triangle(
     const quantity texture_rows_minus_one,
     const quantity texture_columns,
     const quantity texture_columns_minus_one,
+    const f32 *const texture_opacities,
     const f32 *const texture_reds,
     const f32 *const texture_greens,
     const f32 *const texture_blues,
-    const f32 *const texture_opacities,
     const f32 a_camera_row,
     const f32 a_camera_column,
     const f32 a_depth,
@@ -465,10 +465,10 @@ void render_cutout_triangle(
         texture_rows_minus_one,
         texture_columns,
         texture_columns_minus_one,
+        texture_opacities,
         texture_reds,
         texture_greens,
         texture_blues,
-        texture_opacities,
         accumulators,
         camera_row);
 
@@ -498,10 +498,10 @@ void render_cutout_triangle(
         texture_rows_minus_one,
         texture_columns,
         texture_columns_minus_one,
+        texture_opacities,
         texture_reds,
         texture_greens,
         texture_blues,
-        texture_opacities,
         accumulators,
         camera_row);
 
@@ -729,10 +729,10 @@ static void render_blended_row(
     const quantity texture_rows_minus_one,
     const quantity texture_columns,
     const quantity texture_columns_minus_one,
+    const f32 *const texture_opacities,
     const f32 *const texture_reds,
     const f32 *const texture_greens,
     const f32 *const texture_blues,
-    const f32 *const texture_opacities,
     const f32 row_accumulators[16],
     const s32 camera_row)
 {
@@ -787,10 +787,10 @@ static void render_blended_row(
       const f32 unclamped_opacity = accumulators[3] * texture_opacities[texture_index];
       const f32 clamped_opacity = CLAMP(unclamped_opacity, 0.0f, 1.0f);
       const f32 inverse_opacity = 1.0f - clamped_opacity;
+      camera_component_opacities[camera_index] = 1.0f - (1.0f - camera_component_opacities[camera_index]) * inverse_opacity;
       camera_component_reds[camera_index] = camera_component_reds[camera_index] * inverse_opacity + accumulators[4] * texture_reds[texture_index] * clamped_opacity;
-      camera_component_greens[camera_index] = camera_component_reds[camera_index] * inverse_opacity + accumulators[5] * texture_greens[texture_index] * clamped_opacity;
-      camera_component_blues[camera_index] = camera_component_reds[camera_index] * inverse_opacity + accumulators[6] * texture_blues[texture_index] * clamped_opacity;
-      camera_component_opacities[camera_index] = 1.0f;
+      camera_component_greens[camera_index] = camera_component_greens[camera_index] * inverse_opacity + accumulators[5] * texture_greens[texture_index] * clamped_opacity;
+      camera_component_blues[camera_index] = camera_component_blues[camera_index] * inverse_opacity + accumulators[6] * texture_blues[texture_index] * clamped_opacity;
       // TODO: implement mixing of colors
     }
 
@@ -803,10 +803,10 @@ void render_blended_triangle(
     const quantity texture_rows_minus_one,
     const quantity texture_columns,
     const quantity texture_columns_minus_one,
+    const f32 *const texture_opacities,
     const f32 *const texture_reds,
     const f32 *const texture_greens,
     const f32 *const texture_blues,
-    const f32 *const texture_opacities,
     const f32 a_camera_row,
     const f32 a_camera_column,
     const f32 a_depth,
@@ -907,10 +907,10 @@ void render_blended_triangle(
         texture_rows_minus_one,
         texture_columns,
         texture_columns_minus_one,
+        texture_opacities,
         texture_reds,
         texture_greens,
         texture_blues,
-        texture_opacities,
         accumulators,
         camera_row);
 
@@ -940,10 +940,10 @@ void render_blended_triangle(
         texture_rows_minus_one,
         texture_columns,
         texture_columns_minus_one,
+        texture_opacities,
         texture_reds,
         texture_greens,
         texture_blues,
-        texture_opacities,
         accumulators,
         camera_row);
 

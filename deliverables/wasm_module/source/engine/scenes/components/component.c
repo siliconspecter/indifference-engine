@@ -1,5 +1,6 @@
 
 #include "../../primitives/index.h"
+#include "../../primitives/quantity.h"
 #include "../../primitives/s32.h"
 #include "../../../game/project_settings/limits.h"
 #include "../../miscellaneous.h"
@@ -14,8 +15,9 @@ static s32 states[MAXIMUM_COMPONENTS];
 static s32 handles[MAXIMUM_COMPONENTS];
 static component_destroyed *destructors[MAXIMUM_COMPONENTS];
 
-static index first_occupied = INDEX_NONE;
+static index first_occupied;
 static index last_occupied;
+static quantity total_occupied;
 
 component_handle component(
     const index entity,
@@ -23,7 +25,7 @@ component_handle component(
     component_destroyed *const on_destroy)
 {
   // TODO: Check entity exists
-  FIND_EMPTY_INDEX(states, COMPONENT_STATE_INACTIVE, MAXIMUM_COMPONENTS, first_occupied, last_occupied, ERROR_NO_COMPONENTS_TO_ALLOCATE, index)
+  FIND_EMPTY_INDEX(states, COMPONENT_STATE_INACTIVE, MAXIMUM_COMPONENTS, first_occupied, last_occupied, total_occupied, ERROR_NO_COMPONENTS_TO_ALLOCATE, index)
   const component_handle component = meta | (1 << COMPONENT_HANDLE_BITS_FOR_META) | (entity << (COMPONENT_HANDLE_BITS_FOR_META + 1)) | (index << (COMPONENT_HANDLE_BITS_FOR_META + 1 + COMPONENT_HANDLE_BITS_FOR_PARENT));
   states[index] = COMPONENT_STATE_ACTIVE;
   handles[index] = component;
@@ -40,7 +42,7 @@ component_handle sub_component(
 
   if (states[parent] == COMPONENT_STATE_ACTIVE)
   {
-    FIND_EMPTY_INDEX(states, COMPONENT_STATE_INACTIVE, MAXIMUM_COMPONENTS, first_occupied, last_occupied, ERROR_NO_COMPONENTS_TO_ALLOCATE, index)
+    FIND_EMPTY_INDEX(states, COMPONENT_STATE_INACTIVE, MAXIMUM_COMPONENTS, first_occupied, last_occupied, total_occupied, ERROR_NO_COMPONENTS_TO_ALLOCATE, index)
     const component_handle component = meta | (1 << COMPONENT_HANDLE_BITS_FOR_META) | (parent << (COMPONENT_HANDLE_BITS_FOR_META + 1)) | (index << (COMPONENT_HANDLE_BITS_FOR_META + 1 + COMPONENT_HANDLE_BITS_FOR_PARENT));
     states[index] = COMPONENT_STATE_ACTIVE;
     handles[index] = component;
@@ -84,7 +86,7 @@ void destroy_component(const component_handle component)
     states[index] = COMPONENT_STATE_DELETING;
     destroy_all_sub_components_of_index(index);
     destructors[index](component);
-    INDEX_VACATE(index, states, COMPONENT_STATE_INACTIVE, first_occupied, last_occupied)
+    INDEX_VACATE(index, states, COMPONENT_STATE_INACTIVE, first_occupied, last_occupied, total_occupied)
   }
   else
   {

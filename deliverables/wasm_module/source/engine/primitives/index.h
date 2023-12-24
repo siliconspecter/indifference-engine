@@ -38,50 +38,75 @@ typedef s32 index;
  *                       INDEX_NONE if no slots are occupied.
  * @param last_occupied The name of the previously defined variable containing
  *                      the index of the last occupied slot.
+ * @param total_occupied The name of the previously defined variable containing
+ *                       the total number of occupied slots.
  * @param error The error which is raised if there are no vacancies.
  * @param output The name of the variable to declare and populate with the index
  *               of the vacant slot.
  */
-#define FIND_EMPTY_INDEX(vacancies, vacant, count, first_occupied, last_occupied, error, output) \
-  index output;                                                                                  \
-                                                                                                 \
-  if (first_occupied == INDEX_NONE)                                                              \
-  {                                                                                              \
-    output = 0;                                                                                  \
-    first_occupied = 0;                                                                          \
-    last_occupied = 0;                                                                           \
-  }                                                                                              \
-  else                                                                                           \
-  {                                                                                              \
-    for (output = first_occupied; output < last_occupied; output++)                              \
-    {                                                                                            \
-      if (vacancies[output] == vacant)                                                           \
-      {                                                                                          \
-        break;                                                                                   \
-      }                                                                                          \
-    }                                                                                            \
-                                                                                                 \
-    if (output == last_occupied)                                                                 \
-    {                                                                                            \
-      output++;                                                                                  \
-                                                                                                 \
-      if (output == count)                                                                       \
-      {                                                                                          \
-        if (first_occupied == 0)                                                                 \
-        {                                                                                        \
-          throw(error);                                                                          \
-        }                                                                                        \
-        else                                                                                     \
-        {                                                                                        \
-          output = first_occupied - 1;                                                           \
-          first_occupied = output;                                                               \
-        }                                                                                        \
-      }                                                                                          \
-      else                                                                                       \
-      {                                                                                          \
-        last_occupied = output;                                                                  \
-      }                                                                                          \
-    }                                                                                            \
+#define FIND_EMPTY_INDEX(vacancies, vacant, count, first_occupied, last_occupied, total_occupied, error, output) \
+  index output;                                                                                                  \
+                                                                                                                 \
+  if (total_occupied == 0)                                                                                       \
+  {                                                                                                              \
+    output = 0;                                                                                                  \
+    first_occupied = 0;                                                                                          \
+    last_occupied = 0;                                                                                           \
+    total_occupied = 1;                                                                                          \
+  }                                                                                                              \
+  else if (total_occupied == (1 + last_occupied - first_occupied))                                               \
+  {                                                                                                              \
+    if (first_occupied > 0)                                                                                      \
+    {                                                                                                            \
+      total_occupied++;                                                                                          \
+      first_occupied--;                                                                                          \
+      output = first_occupied;                                                                                   \
+    }                                                                                                            \
+    else if (last_occupied < (count)-1)                                                                          \
+    {                                                                                                            \
+      total_occupied++;                                                                                          \
+      last_occupied++;                                                                                           \
+      output = last_occupied;                                                                                    \
+    }                                                                                                            \
+    else                                                                                                         \
+    {                                                                                                            \
+      throw(error);                                                                                              \
+    }                                                                                                            \
+  }                                                                                                              \
+  else                                                                                                           \
+  {                                                                                                              \
+    for (output = first_occupied; output < last_occupied; output++)                                              \
+    {                                                                                                            \
+      if (vacancies[output] == vacant)                                                                           \
+      {                                                                                                          \
+        total_occupied++;                                                                                        \
+        break;                                                                                                   \
+      }                                                                                                          \
+    }                                                                                                            \
+                                                                                                                 \
+    if (output == last_occupied)                                                                                 \
+    {                                                                                                            \
+      output++;                                                                                                  \
+                                                                                                                 \
+      if (output == count)                                                                                       \
+      {                                                                                                          \
+        if (first_occupied == 0)                                                                                 \
+        {                                                                                                        \
+          throw(error);                                                                                          \
+        }                                                                                                        \
+        else                                                                                                     \
+        {                                                                                                        \
+          total_occupied++;                                                                                      \
+          output = first_occupied - 1;                                                                           \
+          first_occupied = output;                                                                               \
+        }                                                                                                        \
+      }                                                                                                          \
+      else                                                                                                       \
+      {                                                                                                          \
+        total_occupied++;                                                                                        \
+        last_occupied = output;                                                                                  \
+      }                                                                                                          \
+    }                                                                                                            \
   }
 
 /**
@@ -95,28 +120,31 @@ typedef s32 index;
  *                       INDEX_NONE if no slots are occupied.
  * @param last_occupied The name of the previously defined variable containing
  *                      the index of the last occupied slot.
+ * @param total_occupied The name of the previously defined variable containing
+ *                       the total number of occupied slots.
  */
-#define INDEX_VACATE(vacated, vacancies, vacant, first_occupied, last_occupied) \
-  vacancies[vacated] = vacant;                                                  \
-                                                                                 \
-  if (vacated == first_occupied)                                                \
-  {                                                                             \
-    if (vacated == last_occupied)                                               \
-    {                                                                           \
-      first_occupied = INDEX_NONE;                                              \
-    }                                                                           \
-    else                                                                        \
-      do                                                                        \
-      {                                                                         \
-        first_occupied++;                                                       \
-      } while (vacancies[first_occupied] == vacant);                            \
-  }                                                                             \
-  else if (vacated == last_occupied)                                            \
-  {                                                                             \
-    do                                                                          \
-    {                                                                           \
-      last_occupied--;                                                          \
-    } while (vacancies[last_occupied] == vacant);                               \
+#define INDEX_VACATE(vacated, vacancies, vacant, first_occupied, last_occupied, total_occupied) \
+  total_occupied--;                                                                             \
+  vacancies[vacated] = vacant;                                                                  \
+                                                                                                \
+  if (vacated == first_occupied)                                                                \
+  {                                                                                             \
+    if (vacated == last_occupied)                                                               \
+    {                                                                                           \
+      first_occupied = INDEX_NONE;                                                              \
+    }                                                                                           \
+    else                                                                                        \
+      do                                                                                        \
+      {                                                                                         \
+        first_occupied++;                                                                       \
+      } while (vacancies[first_occupied] == vacant);                                            \
+  }                                                                                             \
+  else if (vacated == last_occupied)                                                            \
+  {                                                                                             \
+    do                                                                                          \
+    {                                                                                           \
+      last_occupied--;                                                                          \
+    } while (vacancies[last_occupied] == vacant);                                               \
   }
 
 #endif

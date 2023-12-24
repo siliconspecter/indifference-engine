@@ -22,12 +22,13 @@ matrix inverse_entity_model_view_projections[MAXIMUM_ENTITIES];
 
 static s32 states[MAXIMUM_ENTITIES];
 
-static index first_occupied = INDEX_NONE;
+static index first_occupied;
 static index last_occupied;
+static quantity total_occupied;
 
 index entity()
 {
-  FIND_EMPTY_INDEX(states, ENTITY_STATE_INACTIVE, MAXIMUM_ENTITIES, first_occupied, last_occupied, ERROR_NO_ENTITIES_TO_ALLOCATE, entity)
+  FIND_EMPTY_INDEX(states, ENTITY_STATE_INACTIVE, MAXIMUM_ENTITIES, first_occupied, last_occupied, total_occupied, ERROR_NO_ENTITIES_TO_ALLOCATE, entity)
 
   states[entity] = ENTITY_STATE_ACTIVE;
   copy_matrix(identity_matrix, previous_entity_transforms[entity]);
@@ -44,7 +45,7 @@ void destroy_entity(const index entity)
   {
     states[entity] = ENTITY_STATE_DELETING;
     destroy_all_components_of(entity);
-    INDEX_VACATE(entity, states, ENTITY_STATE_INACTIVE, first_occupied, last_occupied)
+    INDEX_VACATE(entity, states, ENTITY_STATE_INACTIVE, first_occupied, last_occupied, total_occupied)
   }
   else
   {

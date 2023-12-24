@@ -30,8 +30,9 @@ f32 next_camera_component_lefts[MAXIMUM_CAMERA_COMPONENTS];
 f32 previous_camera_component_rights[MAXIMUM_CAMERA_COMPONENTS];
 f32 next_camera_component_rights[MAXIMUM_CAMERA_COMPONENTS];
 
-static index first_occupied = INDEX_NONE;
+static index first_occupied;
 static index last_occupied;
+static quantity total_occupied;
 static const matrix *transforms[MAXIMUM_CAMERA_COMPONENTS];
 static const matrix *inverse_transforms[MAXIMUM_CAMERA_COMPONENTS];
 
@@ -52,7 +53,7 @@ f32 camera_component_gain;
 
 static index allocate(index entity)
 {
-  FIND_EMPTY_INDEX(transforms, NULL, MAXIMUM_CAMERA_COMPONENTS, first_occupied, last_occupied, ERROR_NO_CAMERA_COMPONENTS_TO_ALLOCATE, camera)
+  FIND_EMPTY_INDEX(transforms, NULL, MAXIMUM_CAMERA_COMPONENTS, first_occupied, last_occupied, total_occupied, ERROR_NO_CAMERA_COMPONENTS_TO_ALLOCATE, camera)
 
   transforms[camera] = &interpolated_entity_transforms[entity];
   inverse_transforms[camera] = &interpolated_inverse_entity_transforms[entity];

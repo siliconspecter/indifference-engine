@@ -1,4 +1,5 @@
 #include "../../primitives/index.h"
+#include "../../primitives/quantity.h"
 #include "../../primitives/s32.h"
 #include "component.h"
 #include "tick_component.h"
@@ -6,8 +7,9 @@
 #include "../../exports/buffers/error.h"
 #include "../../miscellaneous.h"
 
-static index first_occupied = INDEX_NONE;
+static index first_occupied;
 static index last_occupied;
+static quantity total_occupied;
 static tick_component_ticked *on_ticks[MAXIMUM_TICK_COMPONENTS];
 static index metas[MAXIMUM_TICK_COMPONENTS];
 static s32 delays[MAXIMUM_TICK_COMPONENTS];
@@ -27,7 +29,7 @@ static void destroy(const component_handle component)
 
 static index allocate(const index meta, tick_component_ticked *const on_tick)
 {
-  FIND_EMPTY_INDEX(on_ticks, NULL, MAXIMUM_TICK_COMPONENTS, first_occupied, last_occupied, ERROR_NO_TICK_COMPONENTS_TO_ALLOCATE, tick)
+  FIND_EMPTY_INDEX(on_ticks, NULL, MAXIMUM_TICK_COMPONENTS, first_occupied, last_occupied, total_occupied, ERROR_NO_TICK_COMPONENTS_TO_ALLOCATE, tick)
   on_ticks[tick] = on_tick;
   metas[tick] = meta;
 

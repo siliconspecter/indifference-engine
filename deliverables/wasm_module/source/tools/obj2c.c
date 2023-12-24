@@ -525,8 +525,8 @@ static void obj_type(
             const float *vertex_data = &vertices[vertex_index * 7];
             int next_index;
             const int next_texture_coordinate_index = face_texture_coordinate_indices[read_index];
-            const float next_row = texture_coordinates[next_texture_coordinate_index * 2];
-            const float next_column = texture_coordinates[next_texture_coordinate_index * 2 + 1];
+            const float next_row = 1 - texture_coordinates[next_texture_coordinate_index * 2 + 1];
+            const float next_column = texture_coordinates[next_texture_coordinate_index * 2];
             const float next_opacity = vertex_data[6];
             const float next_red = vertex_data[3];
             const float next_green = vertex_data[4];

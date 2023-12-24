@@ -2696,9 +2696,9 @@ static void obj_space()
     vertices[vertices_length * 7] = 0.0f;
     vertices[vertices_length * 7 + 1] = 0.0f;
     vertices[vertices_length * 7 + 2] = 0.0f;
-    vertices[vertices_length * 7 + 3] = 21.26f;
-    vertices[vertices_length * 7 + 4] = 71.52f;
-    vertices[vertices_length * 7 + 5] = 7.22f;
+    vertices[vertices_length * 7 + 3] = 23.57457596073899f;
+    vertices[vertices_length * 7 + 4] = 7.007766847389691f;
+    vertices[vertices_length * 7 + 5] = 69.4176571918713f;
     vertices[vertices_length * 7 + 6] = 1.0f;
 
     vertices_length++;
@@ -2725,19 +2725,19 @@ static void obj_space()
 
   case STATE_OBJ_V_R_DIGITS:
   case STATE_OBJ_V_R_DECIMAL:
-    vertices[(vertices_length - 1) * 7 + 3] = pow(get_and_reset_float(), 2.2f) * 21.26f;
+    vertices[(vertices_length - 1) * 7 + 3] = pow(get_and_reset_float(), 2.2f) * 23.57457596073899f;
     state = STATE_OBJ_V_R_SPACE;
     return;
 
   case STATE_OBJ_V_G_DIGITS:
   case STATE_OBJ_V_G_DECIMAL:
-    vertices[(vertices_length - 1) * 7 + 4] = pow(get_and_reset_float(), 2.2f) * 71.52f;
+    vertices[(vertices_length - 1) * 7 + 4] = pow(get_and_reset_float(), 2.2f) * 7.007766847389691f;
     state = STATE_OBJ_V_G_SPACE;
     return;
 
   case STATE_OBJ_V_B_DIGITS:
   case STATE_OBJ_V_B_DECIMAL:
-    vertices[(vertices_length - 1) * 7 + 5] = pow(get_and_reset_float(), 2.2f) * 7.22f;
+    vertices[(vertices_length - 1) * 7 + 5] = pow(get_and_reset_float(), 2.2f) * 69.4176571918713f;
     state = STATE_OBJ_V_B_SPACE;
     return;
 

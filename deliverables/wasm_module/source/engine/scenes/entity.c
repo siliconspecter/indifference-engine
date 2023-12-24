@@ -108,7 +108,7 @@ static void apply_current_camera_component_to_column_of_entity_transforms(
   for (index index = 0; index < total; index++)
   {
     // TODO: Check whether this is correct for inverse, it likely isn't.
-    multiply_matrices(interpolated_transforms[index], from_camera_component, applied_transforms[index]);
+    multiply_matrices(from_camera_component, interpolated_transforms[index], applied_transforms[index]);
   }
 }
 

@@ -34,9 +34,7 @@ static void set_mesh(const index meta, const mesh *const mesh)
   {
     if (opaque_cutout_index != INDEX_NONE)
     {
-      INDEX_VACATED(opaque_cutout_index, opaque_cutout_meshes, NULL, first_occupied_opaque_cutout, last_occupied_opaque_cutout)
-      opaque_cutout_meshes[opaque_cutout_index] = NULL;
-
+      INDEX_VACATE(opaque_cutout_index, opaque_cutout_meshes, NULL, first_occupied_opaque_cutout, last_occupied_opaque_cutout)
       opaque_cutout[meta] = INDEX_NONE;
     }
   }
@@ -55,9 +53,7 @@ static void set_mesh(const index meta, const mesh *const mesh)
   {
     if (additive_blended_index != INDEX_NONE)
     {
-      INDEX_VACATED(additive_blended_index, additive_blended_meshes, NULL, first_occupied_additive_blended, last_occupied_additive_blended)
-      additive_blended_meshes[additive_blended_index] = NULL;
-
+      INDEX_VACATE(additive_blended_index, additive_blended_meshes, NULL, first_occupied_additive_blended, last_occupied_additive_blended)
       additive_blended[meta] = INDEX_NONE;
     }
   }
@@ -92,9 +88,7 @@ static void destroy(const component_handle component)
 
   if (opaque_cutout_index != INDEX_NONE)
   {
-    INDEX_VACATED(opaque_cutout_index, opaque_cutout_meshes, NULL, first_occupied_opaque_cutout, last_occupied_opaque_cutout)
-    opaque_cutout_meshes[opaque_cutout_index] = NULL;
-
+    INDEX_VACATE(opaque_cutout_index, opaque_cutout_meshes, NULL, first_occupied_opaque_cutout, last_occupied_opaque_cutout)
     opaque_cutout[meta] = INDEX_NONE;
   }
 
@@ -102,9 +96,7 @@ static void destroy(const component_handle component)
 
   if (additive_blended_index != INDEX_NONE)
   {
-    INDEX_VACATED(additive_blended_index, additive_blended_meshes, NULL, first_occupied_additive_blended, last_occupied_additive_blended)
-    additive_blended_meshes[additive_blended_index] = NULL;
-
+    INDEX_VACATE(additive_blended_index, additive_blended_meshes, NULL, first_occupied_additive_blended, last_occupied_additive_blended)
     additive_blended[meta] = INDEX_NONE;
   }
 

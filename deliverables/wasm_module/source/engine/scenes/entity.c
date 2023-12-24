@@ -44,8 +44,7 @@ void destroy_entity(const index entity)
   {
     states[entity] = ENTITY_STATE_DELETING;
     destroy_all_components_of(entity);
-    states[entity] = ENTITY_STATE_INACTIVE;
-    INDEX_VACATED(entity, states, ENTITY_STATE_INACTIVE, first_occupied, last_occupied)
+    INDEX_VACATE(entity, states, ENTITY_STATE_INACTIVE, first_occupied, last_occupied)
   }
   else
   {

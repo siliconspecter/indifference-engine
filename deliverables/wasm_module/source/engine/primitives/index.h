@@ -85,8 +85,7 @@ typedef s32 index;
   }
 
 /**
- * Maintains look-up state when a previously occupied slot within a field of
- * indices is vacated.
+ * Vacates a slot then maintains look-up state.
  * @param vacated The index of the newly vacated slot.
  * @param vacancies An array which can be used to check for occupancy.
  * @param vacant A constant which indicates a vacancy in the array of potential
@@ -97,25 +96,27 @@ typedef s32 index;
  * @param last_occupied The name of the previously defined variable containing
  *                      the index of the last occupied slot.
  */
-#define INDEX_VACATED(vacated, vacancies, vacant, first_occupied, last_occupied) \
-  if (vacated == first_occupied)                                                 \
-  {                                                                              \
-    if (vacated == last_occupied)                                                \
-    {                                                                            \
-      first_occupied = INDEX_NONE;                                               \
-    }                                                                            \
-    else                                                                         \
-      do                                                                         \
-      {                                                                          \
-        first_occupied++;                                                        \
-      } while (vacancies[first_occupied] == vacant);                             \
-  }                                                                              \
-  else if (vacated == last_occupied)                                             \
-  {                                                                              \
-    do                                                                           \
-    {                                                                            \
-      last_occupied--;                                                           \
-    } while (vacancies[last_occupied] == vacant);                                \
+#define INDEX_VACATE(vacated, vacancies, vacant, first_occupied, last_occupied) \
+  vacancies[vacated] = vacant;                                                  \
+                                                                                 \
+  if (vacated == first_occupied)                                                \
+  {                                                                             \
+    if (vacated == last_occupied)                                               \
+    {                                                                           \
+      first_occupied = INDEX_NONE;                                              \
+    }                                                                           \
+    else                                                                        \
+      do                                                                        \
+      {                                                                         \
+        first_occupied++;                                                       \
+      } while (vacancies[first_occupied] == vacant);                            \
+  }                                                                             \
+  else if (vacated == last_occupied)                                            \
+  {                                                                             \
+    do                                                                          \
+    {                                                                           \
+      last_occupied--;                                                          \
+    } while (vacancies[last_occupied] == vacant);                               \
   }
 
 #endif

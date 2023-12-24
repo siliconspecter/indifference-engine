@@ -84,8 +84,7 @@ void destroy_component(const component_handle component)
     states[index] = COMPONENT_STATE_DELETING;
     destroy_all_sub_components_of_index(index);
     destructors[index](component);
-    states[index] = COMPONENT_STATE_INACTIVE;
-    INDEX_VACATED(index, states, COMPONENT_STATE_INACTIVE, first_occupied, last_occupied)
+    INDEX_VACATE(index, states, COMPONENT_STATE_INACTIVE, first_occupied, last_occupied)
   }
   else
   {

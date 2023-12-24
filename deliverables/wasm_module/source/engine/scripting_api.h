@@ -38,4 +38,7 @@
 #include "scenes/components/tick_component.h"
 #include "scenes/components/timer_component.h"
 
+#include "exports/buffers/error.h"
+#include "exports/buffers/persist.h"
+
 #endif

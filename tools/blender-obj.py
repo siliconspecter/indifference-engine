@@ -24,9 +24,9 @@ from bpy_extras.io_utils import ExportHelper, ImportHelper
 
 def initialize_scene(context):
     context.scene.render.engine = "BLENDER_EEVEE"
-
-    # TODO color management standard
-    # TODO: render mode
+    context.scene.eevee.taa_render_samples = 1
+    context.scene.eevee.taa_samples = 1
+    context.scene.view_settings.view_transform = "Standard"
 
     for window in context.window_manager.windows:
         for area in window.screen.areas:

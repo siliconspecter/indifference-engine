@@ -258,4 +258,21 @@ f32 linearly_interpolate_f32_f32_f32(
     const f32 progress,
     const f32 inverse_progress);
 
+/**
+ * Linearly interpolates between the f32s in two memory regions.
+ * @param start The f32s to linearly interpolate from.
+ * @param end The f32s to linearly interpolate to.
+ * @param progress When 0, "start", when 1, "end".
+ * @param inverse_progress 1 - "progress".
+ * @param results The f32s to write the results to.  May be the start and/or
+ *                end, but may not otherwise overlap with them.
+ */
+void linearly_interpolate_f32s_f32s_f32(
+    const f32 *const start,
+    const f32 *const end,
+    const f32 progress,
+    const f32 inverse_progress,
+    f32 *const results,
+    const quantity quantity);
+
 #endif

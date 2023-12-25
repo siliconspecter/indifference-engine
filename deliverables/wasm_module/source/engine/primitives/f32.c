@@ -214,3 +214,17 @@ f32 linearly_interpolate_f32_f32_f32(
 {
   return start * inverse_progress + end * progress;
 }
+
+void linearly_interpolate_f32s_f32s_f32(
+    const f32 *const start,
+    const f32 *const end,
+    const f32 progress,
+    const f32 inverse_progress,
+    f32 *const results,
+    const quantity quantity)
+{
+  for (index index = 0; index < quantity; index++)
+  {
+    results[index] = linearly_interpolate_f32_f32_f32(start[index], end[index], progress, inverse_progress);
+  }
+}

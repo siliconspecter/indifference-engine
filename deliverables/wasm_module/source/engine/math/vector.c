@@ -7,10 +7,7 @@ void add_vectors(
     const vector addend,
     vector sum)
 {
-  for (index component = 0; component < VECTOR_COMPONENTS; component++)
-  {
-    sum[component] = augend[component] + addend[component];
-  }
+  add_f32s_f32s(augend, addend, sum, VECTOR_COMPONENTS);
 }
 
 void subtract_vectors(
@@ -18,10 +15,7 @@ void subtract_vectors(
     const vector subtrahend,
     vector difference)
 {
-  for (index component = 0; component < VECTOR_COMPONENTS; component++)
-  {
-    difference[component] = minuend[component] - subtrahend[component];
-  }
+  subtract_f32s_f32s(minuend, subtrahend, difference, VECTOR_COMPONENTS);
 }
 
 void multiply_vector_by_scalar(
@@ -29,10 +23,7 @@ void multiply_vector_by_scalar(
     const f32 multiplicand,
     vector product)
 {
-  for (index component = 0; component < VECTOR_COMPONENTS; component++)
-  {
-    product[component] = multiplier[component] * multiplicand;
-  }
+  multiply_f32s_f32(multiplier, multiplicand, product, VECTOR_COMPONENTS);
 }
 
 f32 dot_product(
@@ -70,10 +61,5 @@ void linearly_interpolate_vectors_by_scalar(
     const vector destination,
     vector interpolated)
 {
-  const f32 inverse_progress = 1 - progress;
-
-  for (index component = 0; component < VECTOR_COMPONENTS; component++)
-  {
-    interpolated[component] = origin[component] * inverse_progress + destination[component] * progress;
-  }
+  linearly_interpolate_f32s_f32s_f32(origin, destination, progress, 1 - progress, interpolated, VECTOR_COMPONENTS);
 }

@@ -9,7 +9,8 @@
 
 #define COMPONENT_STATE_INACTIVE 0
 #define COMPONENT_STATE_ACTIVE 1
-#define COMPONENT_STATE_DELETING 2
+#define COMPONENT_STATE_ACTIVE_WITH_CHILDREN 2
+#define COMPONENT_STATE_DELETING 3
 
 static s32 states[MAXIMUM_COMPONENTS];
 static s32 handles[MAXIMUM_COMPONENTS];
@@ -40,7 +41,10 @@ component_handle sub_component(
 {
   const index parent = COMPONENT_HANDLE_COMPONENT(component);
 
-  if (states[parent] == COMPONENT_STATE_ACTIVE)
+  switch (states[parent])
+  {
+  case COMPONENT_STATE_ACTIVE:
+  case COMPONENT_STATE_ACTIVE_WITH_CHILDREN:
   {
     FIND_EMPTY_INDEX(states, COMPONENT_STATE_INACTIVE, MAXIMUM_COMPONENTS, first_occupied, last_occupied, total_occupied, ERROR_NO_COMPONENTS_TO_ALLOCATE, index)
     const component_handle component = meta | (1 << COMPONENT_HANDLE_BITS_FOR_META) | (parent << (COMPONENT_HANDLE_BITS_FOR_META + 1)) | (index << (COMPONENT_HANDLE_BITS_FOR_META + 1 + COMPONENT_HANDLE_BITS_FOR_PARENT));
@@ -49,8 +53,8 @@ component_handle sub_component(
     destructors[index] = on_destroy;
     return component;
   }
-  else
-  {
+
+  default:
     throw(ERROR_COMPONENT_DOES_NOT_EXIST);
   }
 }
@@ -61,7 +65,25 @@ static void destroy_all_sub_components_of_index(const index component)
   {
     for (index index = first_occupied; index <= last_occupied; index++)
     {
-      if (states[index] == COMPONENT_STATE_ACTIVE)
+
+      const s32 state = states[index];
+
+      switch (state)
+      {
+      case COMPONENT_STATE_ACTIVE:
+      {
+        const component_handle handle = handles[index];
+
+        if (COMPONENT_HANDLE_IS_CHILD_OF_COMPONENT(handle) && COMPONENT_HANDLE_PARENT(handle) == component)
+        {
+          states[index] = COMPONENT_STATE_DELETING;
+          destructors[index](handle);
+          states[index] = COMPONENT_STATE_INACTIVE;
+        }
+        break;
+      }
+
+      case COMPONENT_STATE_ACTIVE_WITH_CHILDREN:
       {
         const component_handle handle = handles[index];
 
@@ -72,6 +94,8 @@ static void destroy_all_sub_components_of_index(const index component)
           destructors[index](handle);
           states[index] = COMPONENT_STATE_INACTIVE;
         }
+        break;
+      }
       }
     }
   }
@@ -81,22 +105,32 @@ void destroy_component(const component_handle component)
 {
   const index index = COMPONENT_HANDLE_COMPONENT(component);
 
-  if (states[index] == COMPONENT_STATE_ACTIVE)
+  switch (states[index])
   {
+  case COMPONENT_STATE_ACTIVE:
+    states[index] = COMPONENT_STATE_DELETING;
+    destructors[index](component);
+    INDEX_VACATE(index, states, COMPONENT_STATE_INACTIVE, first_occupied, last_occupied, total_occupied)
+    break;
+
+  case COMPONENT_STATE_ACTIVE_WITH_CHILDREN:
     states[index] = COMPONENT_STATE_DELETING;
     destroy_all_sub_components_of_index(index);
     destructors[index](component);
     INDEX_VACATE(index, states, COMPONENT_STATE_INACTIVE, first_occupied, last_occupied, total_occupied)
-  }
-  else
-  {
+    break;
+
+  default:
     throw(ERROR_COMPONENT_DOES_NOT_EXIST);
   }
 }
 
 index parent_entity_of(const component_handle component)
 {
-  if (states[COMPONENT_HANDLE_COMPONENT(component)] == COMPONENT_STATE_ACTIVE)
+  switch (states[COMPONENT_HANDLE_COMPONENT(component)])
+  {
+  case COMPONENT_STATE_ACTIVE:
+  case COMPONENT_STATE_ACTIVE_WITH_CHILDREN:
   {
     component_handle recursed = component;
 
@@ -107,8 +141,8 @@ index parent_entity_of(const component_handle component)
 
     return COMPONENT_HANDLE_PARENT(recursed);
   }
-  else
-  {
+
+  default:
     throw(ERROR_COMPONENT_DOES_NOT_EXIST);
   }
 }

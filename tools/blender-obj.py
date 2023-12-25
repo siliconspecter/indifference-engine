@@ -461,11 +461,25 @@ class IndifferenceEngineOBJExport(Operator, ExportHelper):
                     for node in material.node_tree.nodes:
                         if node.type == "TEX_IMAGE":
                             if node.image is not None:
-                                # TODO: Relative path
-                                # TODO: Ensure TGA
+                                if not node.image.filepath.endswith(".tga"):
+                                    self.report(
+                                        {"ERROR"},
+                                        'Textures must be in TGA format ("'
+                                        + node.image.filepath
+                                        + '").',
+                                    )
+                                    return {"FINISHED"}
+
                                 file.write(
                                     "map_Kd "
-                                    + sub(r"^/+", "", node.image.filepath)
+                                    + sub(
+                                        r"^[\\/]+",
+                                        "",
+                                        path.relpath(
+                                            bpy.path.abspath(node.image.filepath),
+                                            path.dirname(self.filepath),
+                                        ),
+                                    ).replace("\\", "/")
                                     + "\n"
                                 )
 

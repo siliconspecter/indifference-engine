@@ -6,9 +6,6 @@
 #include "../math/float.h"
 #include "../scenes/components/camera_component.h"
 
-// TODO
-#include "../exports/buffers/error.h"
-
 static void sort_top_to_bottom(
     f32 *const vertices,
     const quantity f32s_per_vertex,
@@ -571,9 +568,6 @@ static void render_additive_row(
       camera_component_reds[camera_index] += accumulators[3] * texture_reds[texture_index];
       camera_component_greens[camera_index] += accumulators[4] * texture_greens[texture_index];
       camera_component_blues[camera_index] += accumulators[5] * texture_blues[texture_index];
-
-      // TODO: Update opacities
-      // camera_component_opacities[camera_index] = 1.0f;
     }
 
     add_f32s_f32s(accumulators, per_columns, accumulators, 6);
@@ -791,7 +785,6 @@ static void render_blended_row(
       camera_component_reds[camera_index] = camera_component_reds[camera_index] * inverse_opacity + accumulators[4] * texture_reds[texture_index] * clamped_opacity;
       camera_component_greens[camera_index] = camera_component_greens[camera_index] * inverse_opacity + accumulators[5] * texture_greens[texture_index] * clamped_opacity;
       camera_component_blues[camera_index] = camera_component_blues[camera_index] * inverse_opacity + accumulators[6] * texture_blues[texture_index] * clamped_opacity;
-      // TODO: implement mixing of colors
     }
 
     add_f32s_f32s(accumulators, per_columns, accumulators, 7);

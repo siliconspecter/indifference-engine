@@ -386,7 +386,7 @@ static void write_texture_reference_array(
 
       if (!textures_imported[texture_index])
       {
-        write(error_message, "const texture * %s();\n", texture_variable_names[material_diffuse_texture_indices[material_indices[index]]]);
+        write(error_message, "const texture * %s%s();\n", texture_prefix, texture_variable_names[material_diffuse_texture_indices[material_indices[index]]]);
 
         textures_imported[texture_index] = true;
       }
@@ -412,7 +412,7 @@ static void write_texture_reference_array(
 
     for (int index = 0; index < quantity; index++)
     {
-      write(error_message, index ? ", %s" : "%s", texture_variable_names[material_diffuse_texture_indices[material_indices[index]]]);
+      write(error_message, index ? ", %s%s" : "%s%s", texture_prefix, texture_variable_names[material_diffuse_texture_indices[material_indices[index]]]);
     }
 
     write(error_message, " };\n");

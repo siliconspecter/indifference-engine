@@ -41,7 +41,7 @@ ephemeral/tga/%.c: source/%.tga ephemeral/tools/tga2c
 # TODO: 2 and 4 are the same
 ephemeral/obj/%.c: source/%.obj ephemeral/tools/obj2c
 	mkdir -p $(dir $@)
-	ephemeral/tools/obj2c $(realpath $(OBJ2C_H_FILES)) $(subst /,_,$(patsubst source/%/,%,$(dir $<))) $(subst /,_,$(patsubst %.obj,%,$(notdir $<))) $(dir $<) $(patsubst source_%_,%,$(subst /,_,$(dir $<))) < $< > $@.temp
+	ephemeral/tools/obj2c $(realpath $(OBJ2C_H_FILES)) $(subst /,_,$(patsubst source/%/,%,$(dir $<))) $(subst /,_,$(patsubst %.obj,%,$(notdir $<))) $(dir $<) $(patsubst source_%_,%,$(subst /,_,$(dir $<)))_ < $< > $@.temp
 	mv $@.temp $@
 
 ephemeral/production/objects/%.o: %.c $(TOTAL_REBUILD_FILES)
